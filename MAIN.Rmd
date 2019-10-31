@@ -1,6 +1,6 @@
 ---
 title: "Mini-Project 2: Adventure 2"
-author: ???
+author: Jack Tan, Debbie Sun, Alex Denzler, Phuong Nguyen
 output: 
   html_document:
     toc: true

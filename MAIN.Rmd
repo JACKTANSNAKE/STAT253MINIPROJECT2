@@ -1,6 +1,74 @@
 ---
-title: "MAIN"
-author: "Tan Zhenggang"
-date: "10/31/2019"
-output: html_document
+title: "Mini-Project 2: Adventure 2"
+author: ???
+output: 
+  html_document:
+    toc: true
+    toc_float: true
+    code_folding: hide
 ---
+
+
+
+
+\
+\
+
+
+
+## Part 1: Background
+
+
+\
+\
+\
+\
+\
+\
+
+
+
+## Part 2: 2 predictor analysis
+
+
+\
+\
+\
+\
+\
+\
+
+
+
+## Part 3: Full analysis
+
+
+
+
+\
+\
+\
+\
+\
+\
+
+
+
+## Part 4: Summarize
+
+
+
+
+
+
+\
+\
+\
+\
+\
+\
+
+
+
+## Part 5: Contributions
+

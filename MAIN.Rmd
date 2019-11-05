@@ -26,19 +26,23 @@ kangaroo <- read.csv("https://www.macalester.edu/~ajohns24/data/kangaroo.csv")
 #set the seed
 set.seed(253)
 
-grid <- expand.grid(C = c(0, 0.01, 0.05, 0.1, 0.25, 0.5, 0.75, 1, 1.25, 1.5, 1.75, 2))
+#svm model
 svm_model <- train(
   species ~ zygomatic.width + nasal.width,
   data = kangaroo,
-  method = "svmLinear2",
+  method = "svmLinear",
   trControl=trainControl(method = "cv", number = 10, selectionFunction = "oneSE"),
   preProcess = c("center", "scale"),
-  tuneGrid = grid,
-  na.action = na.omit,
-  uneLength = 10)
+  metric = "Accuracy",
+  tuneGrid = data.frame(C = c(0.01, 0.05, 0.1, 0.25, 0.5, 0.75, 1, 1.25, 1.5, 1.75, 2)),
+  na.action = na.omit
+  )
 ```
 
 
+```{r}
+plot(svm_model)
+```
 
 
 \

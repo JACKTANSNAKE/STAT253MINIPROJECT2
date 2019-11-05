@@ -26,6 +26,9 @@ kangaroo <- read.csv("https://www.macalester.edu/~ajohns24/data/kangaroo.csv")
 #set the seed
 set.seed(253)
 
+#Tuning parameter c
+c <- seq(0.01, 2, length = 20)
+
 #svm model
 svm_model <- train(
   species ~ zygomatic.width + nasal.width,
@@ -34,7 +37,7 @@ svm_model <- train(
   trControl=trainControl(method = "cv", number = 10, selectionFunction = "oneSE"),
   preProcess = c("center", "scale"),
   metric = "Accuracy",
-  tuneGrid = data.frame(C = c(0.01, 0.05, 0.1, 0.25, 0.5, 0.75, 1, 1.25, 1.5, 1.75, 2)),
+  tuneGrid = data.frame(C = c),
   na.action = na.omit
   )
 ```
@@ -44,6 +47,10 @@ svm_model <- train(
 plot(svm_model)
 ```
 
+```{r}
+svm_model$results %>% 
+  filter(C == svm_model$bestTune$C)
+```
 
 \
 \

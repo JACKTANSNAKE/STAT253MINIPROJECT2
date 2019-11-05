@@ -8,6 +8,10 @@ output:
     code_folding: hide
 ---
 WE ARE CHOOSING TO DO ADVENTURE 2.
+```{r}
+kangaroo <- read.csv("https://www.macalester.edu/~ajohns24/data/kangaroo.csv")
+```
+
 
 
 

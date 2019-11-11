@@ -19,8 +19,8 @@ library(kernlab)
 
 ```{r}
 kangaroo <- read.csv("https://www.macalester.edu/~ajohns24/data/kangaroo.csv")
-#kangaroo <- kangaroo %>%
-  #filter(species == c("giganteus", "fuliginosus"))
+kangaroo_selected <- kangaroo %>%
+  filter(species != c("melanops"))
 ```
 
 ```{r}
@@ -28,7 +28,7 @@ kangaroo <- read.csv("https://www.macalester.edu/~ajohns24/data/kangaroo.csv")
 set.seed(253)
 
 #Tuning parameter c
-c <- seq(0.01, 3, length = 100)
+c <- seq(0.01, 3, length = 200)
 grid <- expand.grid(sigma = c(.01, .015, 0.2), C = c(0.75, 0.9, 1, 1.1, 1.25))
 
 #svm model
@@ -51,15 +51,15 @@ svm_poly <- train(
   trControl=trainControl(method = "cv", number = 10, selectionFunction = "best"),
   preProcess = c("center", "scale"),
   metric = "Accuracy",
-  tuneGrid = data.frame(C = c, scale = TRUE, degree = 2),
+  tuneGrid = data.frame(C = c, scale = TRUE, degree = seq(1, 5, length = 5)),
   na.action = na.omit
   )
+
 ```
 
 
 ```{r}
 plot(svm_model)
-plot(svm_radial)
 plot(svm_poly)
 ```
 

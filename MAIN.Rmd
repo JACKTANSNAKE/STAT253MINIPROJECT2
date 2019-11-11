@@ -14,13 +14,21 @@ library(caret)
 library(e1071)
 library(dplyr)
 library(kernlab)
+library(car)
+library(openxlsx)
+library(VIM)
 ```
 
 
 ```{r}
 kangaroo <- read.csv("https://www.macalester.edu/~ajohns24/data/kangaroo.csv")
-kangaroo_selected <- kangaroo %>%
-  filter(species != c("melanops"))
+#kangaroo_selected <- kangaroo %>%
+#  filter(species != c("melanops"))
+set.seed(253)
+kangaroo_selected <- kangaroo %>% 
+  filter(species != c("melanops")) %>%
+  mutate_if(is.factor, ~droplevels(.))
+levels(kangaroo_selected$species)
 ```
 
 ```{r}
@@ -34,7 +42,7 @@ grid <- expand.grid(sigma = c(.01, .015, 0.2), C = c(0.75, 0.9, 1, 1.1, 1.25))
 #svm model
 svm_model <- train(
   species ~ zygomatic.width + nasal.width,
-  data = kangaroo,
+  data = kangaroo_selected,
   method = "svmLinear",
   trControl=trainControl(method = "cv", number = 10, selectionFunction = "best"),
   preProcess = c("center", "scale"),
@@ -46,7 +54,7 @@ svm_model <- train(
 #svm polynomial model
 svm_poly <- train(
   species ~ zygomatic.width + nasal.width,
-  data = kangaroo,
+  data = kangaroo_selected,
   method = "svmPoly",
   trControl=trainControl(method = "cv", number = 10, selectionFunction = "best"),
   preProcess = c("center", "scale"),

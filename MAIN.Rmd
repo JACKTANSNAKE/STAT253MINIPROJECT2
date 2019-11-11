@@ -13,6 +13,7 @@ WE ARE CHOOSING TO DO ADVENTURE 2.
 library(caret)
 library(e1071)
 library(dplyr)
+library(kernlab)
 ```
 
 
@@ -27,17 +28,30 @@ kangaroo <- read.csv("https://www.macalester.edu/~ajohns24/data/kangaroo.csv")
 set.seed(253)
 
 #Tuning parameter c
-c <- seq(0.01, 2, length = 20)
+c <- seq(0.01, 3, length = 100)
+grid <- expand.grid(sigma = c(.01, .015, 0.2), C = c(0.75, 0.9, 1, 1.1, 1.25))
 
 #svm model
 svm_model <- train(
   species ~ zygomatic.width + nasal.width,
   data = kangaroo,
   method = "svmLinear",
-  trControl=trainControl(method = "cv", number = 10, selectionFunction = "oneSE"),
+  trControl=trainControl(method = "cv", number = 10, selectionFunction = "best"),
   preProcess = c("center", "scale"),
   metric = "Accuracy",
   tuneGrid = data.frame(C = c),
+  na.action = na.omit
+  )
+
+#svm polynomial model
+svm_poly <- train(
+  species ~ zygomatic.width + nasal.width,
+  data = kangaroo,
+  method = "svmPoly",
+  trControl=trainControl(method = "cv", number = 10, selectionFunction = "best"),
+  preProcess = c("center", "scale"),
+  metric = "Accuracy",
+  tuneGrid = data.frame(C = c, scale = TRUE, degree = 2),
   na.action = na.omit
   )
 ```
@@ -45,11 +59,15 @@ svm_model <- train(
 
 ```{r}
 plot(svm_model)
+plot(svm_radial)
+plot(svm_poly)
 ```
 
 ```{r}
 svm_model$results %>% 
   filter(C == svm_model$bestTune$C)
+svm_poly$results %>%
+  filter(C == svm_poly$bestTune$C)
 ```
 
 \

@@ -22,8 +22,6 @@ library(VIM)
 
 ```{r}
 kangaroo <- read.csv("https://www.macalester.edu/~ajohns24/data/kangaroo.csv")
-#kangaroo_selected <- kangaroo %>%
-#  filter(species != c("melanops"))
 set.seed(253)
 kangaroo_selected <- kangaroo %>% 
   filter(species != c("melanops")) %>%

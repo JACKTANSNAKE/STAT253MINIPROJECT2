@@ -9,6 +9,17 @@ output:
 ---
 
 ## Part 1: Background
+
+
+
+
+
+
+
+
+
+
+
 ### Pros and cons of SVM.
 Pros:
 - The solutions given by SVM are guaranteed to be global minimum instead of locally minimum, due to the nature of the optimization of the method.

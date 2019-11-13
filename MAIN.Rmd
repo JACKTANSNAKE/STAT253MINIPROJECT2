@@ -7,8 +7,29 @@ output:
     toc_float: true
     code_folding: hide
 ---
-WE ARE CHOOSING TO DO ADVENTURE 2.
 
+## Part 1: Background
+### Pros and cons of SVM.
+Pros:
+- The solutions given by SVM are guaranteed to be global minimum instead of locally minimum, due to the nature of the optimization of the method.
+- SVM is a spectacular method that is suitable for both linearly and non-linearly separable data sets by using kernel tricks. The only thing to do is to tune the tuning parameter C.
+- SVM works well with data sets that have low dimentionality as well as data sets that have high dimensionality. The algorithm works well with high-dimension because the complexity of training data set in SVM is generally characterized by the support vectors rather than the dimension of the data set.
+- SVM can work effectively on smaller training data set because it does not rely on the entire data.
+
+Cons:
+- SVM is really computationally expensive and thus can not work with large data set.
+- SVM is not so good at dealing with data sets that have multiple overlapping classes.
+
+\
+\
+\
+\
+\
+\
+
+
+
+## Part 2: 2 predictor analysis
 ```{r, message = FALSE}
 library(caret)
 library(e1071)
@@ -18,7 +39,6 @@ library(car)
 library(openxlsx)
 library(VIM)
 ```
-
 
 ```{r}
 kangaroo <- read.csv("https://www.macalester.edu/~ajohns24/data/kangaroo.csv")
@@ -75,25 +95,6 @@ svm_model$results %>%
 svm_poly$results %>%
   filter(C == svm_poly$bestTune$C)
 ```
-
-\
-\
-
-
-
-## Part 1: Background
-
-
-\
-\
-\
-\
-\
-\
-
-
-
-## Part 2: 2 predictor analysis
 
 
 \

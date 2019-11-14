@@ -63,9 +63,17 @@ Cons:
 - SVM is really computationally expensive and thus can not work with large data set.
 - SVM is not so good at dealing with data sets that have multiple overlapping classes.
 
-### Comparison among SVM and other algorithm
+### Comparison among SVM and other classification algorithm
 
+SVM vs. logistic classification: Since logistic classfication can only deal with binary predictors, SVM is just better than logistic in almost every aspect. Though SVM is by default only able to deal with binary predictors as well, as ISLR textbook mentions we can deal with multiclass predictors using techniques called one-versus-one classification or one-versus-all classification.
 
+SVM vs. KNN: In practice, KNN scales badly, gives kind of blocky boundarys and hard-to-explain models. Also, KNN does not work well with high dimensionality datasets. SVM in general does not have this problem and is better.
+
+SVM vs. Tree: Trees are greedy, which gives the locally optimal results rather than global optimal result. SVM is not greedy.
+
+SVM vs. RandomForest: Good things about Randomforests are that randomforest gives a probablistic model that indicates the probability that a given data point falls into a class. Aside from that, SVM usually gives better results when it applies.
+
+Though from above we have come to know that SVM is better than other classification algorithm when it applies, but what about when it doesn't apply? Considering the cons of SVM listed in the previous section, we generally do not want to use SVM when: 1) the given dataset has a lot of data point, say $10^6$, which makes it too computationally inefficient to use SVM; 2) data with many features wrangles together. Though when data wrangles with each other all algorithms tend to perform bad, SVM usually works worse in this case.  
 \
 \
 \

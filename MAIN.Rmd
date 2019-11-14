@@ -19,7 +19,7 @@ library(png)
 ```
 
 
-![](Slack-variables.png)
+
 
 
 
@@ -38,6 +38,8 @@ The hyperplane is a flat affine subspace of demension p-1 in a p dimension space
 In reality, we usually can't make a perfect split because datasets might just not be linearly separable when observations from different categories mix with each other. Here we introduce the term slack variable $\zeta_i$ which allow some observations to fall off the margin but it penalizes them. Each slack variable is determined by the distance between each misclassified observation and the correct margin. In this scenario, our algorithm tries to keep $\zeta_i$ to zero while maximizing the margin. The tolerance term is defined as $𝐶\Sigma\zeta_i$, where $\Sigma\zeta_i$ is the sum of the distance from each misclassified observation to the correct margin and $𝐶$ is the regularization parameter that controls the trade-off between the slack variable penalty (misclassifications) and width of the margin(just like LASSO!).
 
 ### Tuning the regularization parameter
+
+![](Slack-variables.png)
 
 What does the $𝐶$ parameter do in SVM classification? It tells the algorithm how much you care about misclassified points. SVMs, in general, seek to find the maximum-margin hyperplane. That is, the line that has as much room on both sides as possible. A high value for $𝐶$ means that we want the misclassification to be punished hard, which tells the algorithm that we care more about classifying all of the training points correctly than leaving wiggle room for future data, thus the algorithm will produce small margin with low tolerance(low variance, high bias). A low value for $𝐶$ means that we want the misclassification to be hardly punished, which tells the algorithm that we care more about leaving room for future data than classify all of the training points correctly, thus the algorithm will generate a larger margin with higher tolerance(high variance, low bias). To be more precise, when we try to increase $𝐶$, we are betting that our training dataset contains the most extreme cases and future data will be further from the boundary than the cases our training dataset contains. Vice versa. The best $𝐶$ is usually determined using CV.
 
@@ -73,7 +75,8 @@ SVM vs. Tree: Trees are greedy, which gives the locally optimal results rather t
 
 SVM vs. RandomForest: Good things about Randomforests are that randomforest gives a probablistic model that indicates the probability that a given data point falls into a class. Aside from that, SVM usually gives better results when it applies.
 
-Though from above we have come to know that SVM is better than other classification algorithm when it applies, but what about when it doesn't apply? Considering the cons of SVM listed in the previous section, we generally do not want to use SVM when: 1) the given dataset has a lot of data point, say $10^6$, which makes it too computationally inefficient to use SVM; 2) data with many features wrangles together. Though when data wrangles with each other all algorithms tend to perform bad, SVM usually works worse in this case.  
+Though from above we have come to know that SVM is better than other classification algorithm when it applies, but what about when it doesn't apply? Considering the cons of SVM listed in the previous section, we generally do not want to use SVM when: 1) the given dataset has a lot of data point, say $10^6$, which makes it too computationally inefficient to use SVM; 2) data with many features wrangles together. Though when data wrangles with each other all algorithms tend to perform bad, SVM usually works worse in this case.
+
 \
 \
 \
@@ -93,7 +96,7 @@ levels(kangaroo_selected$species)
 ```
 
 **visualization of data**
-```{r warning  = FALSE}
+```{r warning = FALSE}
 ggplot(data = kangaroo_selected, aes(x = zygomatic.width, y = nasal.width, color = species)) + 
   geom_point()
 ```
@@ -108,8 +111,8 @@ set.seed(253)
 c <- seq(0.01, 10, length = 200)
 grid <- expand.grid(sigma = c(.01, .015, 0.2), C = c(0.75, 0.9, 1, 1.1, 1.25))
 
-#svm model
-svm_model <- train(
+#linear svm model
+svm_linear <- train(
   species ~ zygomatic.width + nasal.width,
   data = kangaroo_selected,
   method = "svmLinear",
@@ -132,20 +135,18 @@ svm_poly <- train(
   na.action = na.omit
   )
 
-
-
 ```
 
 **Accuracy plots for the two models**
 ```{r}
-plot(svm_model)
+plot(svm_linear)
 plot(svm_poly)
 ```
 
 **The best tuning parameter**
 ```{r}
 svm_model$results %>% 
-  filter(C == svm_model$bestTune$C)
+  filter(C == svm_linear$bestTune$C)
 svm_poly$results %>%
   filter(C == svm_poly$bestTune$C)
 ```
@@ -162,9 +163,53 @@ svm_poly$results %>%
 
 ## Part 3: Full analysis
 
+```{r}
+#set the seed
+set.seed(253)
 
+#Tuning parameter c
+c <- seq(0.01, 10, length = 200)
+grid <- expand.grid(sigma = c(.01, .015, 0.2), C = c(0.75, 0.9, 1, 1.1, 1.25))
 
+#linear svm model
+svm_linear_all <- train(
+  species ~ .,
+  data = kangaroo_selected,
+  method = "svmLinear",
+  trControl=trainControl(method = "cv", number = 10, selectionFunction = "best"),
+  preProcess = c("center", "scale"),
+  metric = "Accuracy",
+  tuneGrid = data.frame(C = c),
+  na.action = na.omit
+  )
 
+#svm polynomial model
+svm_poly_all <- train(
+  species ~ .,
+  data = kangaroo_selected,
+  method = "svmPoly",
+  trControl=trainControl(method = "cv", number = 10, selectionFunction = "best"),
+  preProcess = c("center", "scale"),
+  metric = "Accuracy",
+  tuneGrid = data.frame(C = c, scale = TRUE, degree = seq(1, 5, length = 5)),
+  na.action = na.omit
+  )
+
+```
+
+**Accuracy plots for the two models**
+```{r}
+plot(svm_linear_all)
+plot(svm_poly_all)
+```
+
+**The best tuning parameter**
+```{r}
+svm_linear_all$results %>% 
+  filter(C == svm_linear_all$bestTune$C)
+svm_poly_all$results %>%
+  filter(C == svm_poly_all$bestTune$C)
+```
 \
 \
 \

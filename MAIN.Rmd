@@ -148,7 +148,7 @@ plot(svm_poly)
 
 **The best tuning parameter**
 ```{r}
-svm_model$results %>% 
+svm_linear$results %>% 
   filter(C == svm_linear$bestTune$C)
 svm_poly$results %>%
   filter(C == svm_poly$bestTune$C)
@@ -230,11 +230,11 @@ svm_rbf_all$results %>%
   filter(C == svm_rbf_all$bestTune$C)
 ```
 
-```{r}
+#```{r}
 # Result table
-kangaroo_selected$predictions <- predict(svm_model_all, kangaroo_selected)
+kangaroo_selected$predictions <- predict(svm_linear_all, kangaroo_selected)
 table(kangaroo_selected$predictions, kangaroo_selected$species)
-```
+#```
 \
 \
 \
@@ -244,14 +244,14 @@ table(kangaroo_selected$predictions, kangaroo_selected$species)
 
 
 ** Variable Importance **
-```{r}
-variable_important <- data.frame(importance(svm_model_all$finalModel)) %>% 
+#```{r}
+variable_important <- data.frame(importance(svm_linear_all$finalModel)) %>% 
 mutate(predictor = rownames(.))
 
 variable_importance %>% 
 arrange(desc(…)) %>% 
 head(1)
-```
+#```
 
 
 

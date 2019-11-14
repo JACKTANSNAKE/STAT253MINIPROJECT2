@@ -9,7 +9,10 @@ output:
 ---
 
 ## Part 1: Background
+### What is an SVM?
+A Support Vector Machine is a supervised machine learning algorithm that is suitable for both classification and regression. For a given set of data that is marked as one category or the other of a total of two categories, an SVM algorithm builds a model that assigns new examples to either of the two categories, making it a binary linear classifier. In an SVM model, cases of the dataset are points in a p-dimensional space, mapped so that they are separated by a p-1 dimension hyperplane with maximized gap. New cases are predicted by assigning each new case to either side of the hyperplane.
 
+### What is a hyperplane?
 
 
 

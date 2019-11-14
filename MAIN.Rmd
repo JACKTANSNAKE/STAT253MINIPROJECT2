@@ -154,6 +154,10 @@ svm_poly$results %>%
   filter(C == svm_poly$bestTune$C)
 ```
 
+**Visualiztion of SVM classification**
+```{r}
+kernlab::plot(svm_linear$finalModel)
+```
 
 \
 \

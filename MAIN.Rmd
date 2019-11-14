@@ -49,7 +49,7 @@ Common kernel functions that are used for SVM include: Linear kernel function (d
 
 ### Tuning parameter of a kernel function, $\gamma$
 
-
+It's hard to explain how this $\gamma$ parameter really works, but the idea is that when we use kernel functions to find the boundary that's suitable for our dataset, the boundary(or called Gaussian boundary) dissipates as they get further from support vectors and this $\gamma$ parameter basically controls how quickly the dissipation happens. In general, if a large $\gamma$ is chosen, the boundary will dissipate slower, meaning that we have a more fixed boundary and similar to using a large $𝐶$, we are betting that future data will fall within this more fixed boundary thus indicating high bias and low variance. Vice versa!
 
 ### Pros and cons of SVM.
 

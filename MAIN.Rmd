@@ -16,6 +16,10 @@ A Support Vector Machine is a supervised machine learning algorithm that is suit
 
 The hyperplane is a flat affine subspace of demension p-1 in a p dimension space. The goal of the hyperplane is to classify the data points into different categories correctly. The natural choice of hyperplane is maximal margin hyperplane. We calculate the distance of each observation to the hyperplane and define the minimum of the distance as the margin of the hyperplane. There are many hyperplanes but we want the one maximizes the margin. The intuition behind this is that the maximal margin hyperplane can give us a better split because it makes each group/category more distinct from each other by using the maximum of the margin, and our classification are more likely to have a high accuracy. 
 
+### Details of hyperplane
+
+In reality, we probably can't make a perfect split because of the non-separable cases when observations from different categories mix with each other. There are errors when we are making classfiction for each observation. The error term is defined in 3 ways. If the observation is on the wrong side of the margin but the right side of the hyperplane, $\varepsilon_i > 0$, if the observation is the on the wrong side of the hyperplane, then $\varepsilon_i > 1$; if the observation is perfectly classfied, then $\varepsilon_i = 0$. Therefore, we also need to define a term of tolerance for the errors, and we define C as the sum of all errors. It determines the severity and number of violations that we will tolerate. Since we choose the level of tolerance, C is our tuning parameter in the SVM algorithm. 
+
 
 
 

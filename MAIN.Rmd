@@ -18,6 +18,11 @@ library(ggplot2)
 library(png)
 ```
 
+
+![](Slack-variables.png)
+
+
+
 ## Part 1: Background
 
 ### What is an SVM?
@@ -36,9 +41,15 @@ In reality, we usually can't make a perfect split because datasets might just no
 
 What does the $𝐶$ parameter do in SVM classification? It tells the algorithm how much you care about misclassified points. SVMs, in general, seek to find the maximum-margin hyperplane. That is, the line that has as much room on both sides as possible. A high value for $𝐶$ means that we want the misclassification to be punished hard, which tells the algorithm that we care more about classifying all of the training points correctly than leaving wiggle room for future data, thus the algorithm will produce small margin with low tolerance(low variance, high bias). A low value for $𝐶$ means that we want the misclassification to be hardly punished, which tells the algorithm that we care more about leaving room for future data than classify all of the training points correctly, thus the algorithm will generate a larger margin with higher tolerance(high variance, low bias). To be more precise, when we try to increase $𝐶$, we are betting that our training dataset contains the most extreme cases and future data will be further from the boundary than the cases our training dataset contains. Vice versa. The best $𝐶$ is usually determined using CV.
 
-### What is a kernel?
+### What is a kernel trick?
+
+A kernel function is a function which takes two data points as inputs and returns a similarity score, which just indicates how close the points are. The closer the data points, the higher the simialrity score! A cool thing about kernel functions is that in high dimensional spaces, where data could be hard to visualize and deal with, by using a kernel function, we can actually compute the similarity scores without doing any transformation on the data(i.e. reducing the dimension). Thus, a kernel trick is just using kernal function instead of using high-cost transformations.
+
+Common kernel functions that are used for SVM include: Linear kernel function (default kernel function just as the visualization above.), polynomial kernel function(similar to a linear kernel function but just raise the degree of the polynoimal above 1), radial basis kernel function(probably one of the best and practical kernel functions that works well when data points wrangle together).
 
 ### Tuning parameter of a kernel function, $\gamma$
+
+
 
 ### Pros and cons of SVM.
 
@@ -86,7 +97,7 @@ ggplot(data = kangaroo_selected, aes(x = zygomatic.width, y = nasal.width, color
 set.seed(253)
 
 #Tuning parameter c
-c <- seq(0.01, 3, length = 200)
+c <- seq(0.01, 10, length = 200)
 grid <- expand.grid(sigma = c(.01, .015, 0.2), C = c(0.75, 0.9, 1, 1.1, 1.25))
 
 #svm model
@@ -112,6 +123,8 @@ svm_poly <- train(
   tuneGrid = data.frame(C = c, scale = TRUE, degree = seq(1, 5, length = 5)),
   na.action = na.omit
   )
+
+
 
 ```
 

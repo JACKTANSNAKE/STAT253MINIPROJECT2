@@ -18,11 +18,6 @@ library(ggplot2)
 library(png)
 ```
 
-
-
-
-
-
 ## Part 1: Background
 
 ### What is an SVM?
@@ -77,14 +72,8 @@ SVM vs. RandomForest: Good things about Randomforests are that randomforest give
 
 Though from above we have come to know that SVM is better than other classification algorithm when it applies, but what about when it doesn't apply? Considering the cons of SVM listed in the previous section, we generally do not want to use SVM when: 1) the given dataset has a lot of data point, say $10^6$, which makes it too computationally inefficient to use SVM; 2) data with many features wrangles together. Though when data wrangles with each other all algorithms tend to perform bad, SVM usually works worse in this case.
 
-\
-\
-\
-\
-\
-\
-
 ## Part 2: 2 predictor analysis
+
 **Ready the data set**
 ```{r}
 kangaroo <- read.csv("https://www.macalester.edu/~ajohns24/data/kangaroo.csv")
@@ -98,12 +87,15 @@ kangaroo_selected %>%
   count(kangaroo_selected$species)
 ```
 
+Here we dropped the `melanops` species for the sake of simplicity. As we can see now, there are 50 of the fuliginosus species and 50 of the giganteus species.
+
 **visualization of data**
 ```{r warning = FALSE}
 ggplot(data = kangaroo_selected, aes(x = zygomatic.width, y = nasal.width, color = species)) + 
   geom_point()
 ```
 
+Since we are now only doing a two-dimension analysis on `zygomatic.width` and `nasal.width`, we can plot the dataset and see what kind of kernel we want to use for our svm model. Luckily, in the plot we can tell that a linear kernel seems fine in this settings and maybe we want a rather small value for the regularization parameter $𝐶$, since there are not so many extreme cases that we want to penalize.
 
 **Two-model build up**
 ```{r}
@@ -126,6 +118,34 @@ svm_linear <- train(
   na.action = na.omit
   )
 
+#plot the accuracies
+plot(svm_linear)
+
+#filtering out the best Tuning parameter for C
+svm_linear$results %>% 
+  filter(C == svm_linear$bestTune$C)
+
+#visualization of the Linear split
+kernlab::plot(svm_linear$finalModel)
+```
+
+```{r}
+plot_data <- kangaroo_selected %>%
+  select(species, zygomatic.width, nasal.width)
+
+e1071_linear_model <- svm(
+  species ~ ., 
+  data = plot_data,
+  method = "C-classification", 
+  kernel = "linear",
+  cost = 0.160603)
+
+plot(e1071_linear_model, plot_data, zygomatic.width ~ nasal.width)
+```
+
+As we have mentioned above, a linear kernel seemed suffice for the SVM model, so we first tried out a Linear kernel SVM by using the `caret` package's `svmLinear` method. As we can see from the CV Accuracy plot, the model reached its best accuracy at the point very close to 0, which fits our expectation that only a small $𝐶$ is needed. So we arrived at an accuracy of 0.889 with the tuning parameter $𝐶$ 0.160603, using Cross Validation. Using caret, we were only able to generate a contourplot of the split with another package called `kernlab`, which was not so satisfying. Thus we used the CV results for another package `e1071` to generate one specific SVM model with the optimal tuning parameter that is able to generate a better splitting plot as is shown above. In the plot, the support vectors are marked as $X$, and black mark stands for fuliginosus and red mark stands for giganteus.
+
+```{r}
 #svm polynomial model
 svm_poly <- train(
   species ~ zygomatic.width + nasal.width,
@@ -138,35 +158,43 @@ svm_poly <- train(
   na.action = na.omit
   )
 
-```
-
-**Accuracy plots for the two models**
-```{r}
-plot(svm_linear)
+#Accuracy plot
 plot(svm_poly)
-```
 
-**The best tuning parameter**
-```{r}
-svm_linear$results %>% 
-  filter(C == svm_linear$bestTune$C)
+#Best tune
 svm_poly$results %>%
   filter(C == svm_poly$bestTune$C)
 ```
 
-**Visualiztion of SVM classification**
 ```{r}
-kernlab::plot(svm_linear$finalModel)
+svm_poly_1 <- train(
+  species ~ zygomatic.width + nasal.width,
+  data = kangaroo_selected,
+  method = "svmPoly",
+  trControl=trainControl(method = "cv", number = 10, selectionFunction = "best"),
+  preProcess = c("center", "scale"),
+  metric = "Accuracy",
+  tuneGrid = data.frame(C = c, scale = TRUE, degree = 2),
+  na.action = na.omit
+  )
+
+kernlab::plot(svm_poly_1$finalModel)
+
+svm_poly_1$results %>%
+  filter(C == svm_poly$bestTune$C)
+
+e1071_quadratic_model <- svm(
+  species ~ ., 
+  data = plot_data,
+  method = "C-classification", 
+  kernel = "polynomial",
+  degree = 2,
+  cost = 0.7630151)
+
+plot(e1071_quadratic_model, plot_data, zygomatic.width ~ nasal.width)
 ```
 
-\
-\
-\
-\
-\
-\
-
-
+Though we have convinced ourselves that a Linear split would be the best in this situation, we still attempted multiple degrees of polynomial kernel split, with degrees ranging from 1~5. Not suprisingly, when degree = 1, we had the same highest accuracy of 0.889, but with different $𝐶$, this is because the `svmPoly` method has another tuning parameter scale, which rescales the dataset thus giving a different yet still small $𝐶$. We also used the same technique we used above to plot the quadratic split(we are not going to plot all 5 degrees, since some degrees do not have good accuracys thus the plot should be kind of a mess). In the plot, the support vectors are marked as $X$, and black mark stands for fuliginosus and red mark stands for giganteus.
 
 ## Part 3: Full analysis
 
@@ -234,45 +262,31 @@ svm_rbf_all$results %>%
   filter(C == svm_rbf_all$bestTune$C)
 ```
 
-#```{r}
+**Visualiztion of Full SVM classification**
+```{r}
+
+```
+
+
+{r}
 # Result table
 kangaroo_selected$predictions <- predict(svm_linear_all, kangaroo_selected)
 table(kangaroo_selected$predictions, kangaroo_selected$species)
-#```
-\
-\
-\
-\
-\
-\
 
 
 ** Variable Importance **
-#```{r}
+{r}
 variable_important <- data.frame(importance(svm_linear_all$finalModel)) %>% 
 mutate(predictor = rownames(.))
 
 variable_importance %>% 
 arrange(desc(…)) %>% 
 head(1)
-#```
+
 
 
 
 ## Part 4: Summarize
-
-
-
-
-
-
-\
-\
-\
-\
-\
-\
-
 
 
 ## Part 5: Contributions

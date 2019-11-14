@@ -93,6 +93,9 @@ kangaroo_selected <- kangaroo %>%
   filter(species != c("melanops")) %>%
   mutate_if(is.factor, ~droplevels(.))
 levels(kangaroo_selected$species)
+
+kangaroo_selected %>% 
+  count(kangaroo_selected$species)
 ```
 
 **visualization of data**
@@ -210,12 +213,29 @@ svm_linear_all$results %>%
 svm_poly_all$results %>%
   filter(C == svm_poly_all$bestTune$C)
 ```
+
+```{r}
+# Result table
+kangaroo_selected$predictions <- predict(svm_model_all, kangaroo_selected)
+table(kangaroo_selected$predictions, kangaroo_selected$species)
+```
 \
 \
 \
 \
 \
 \
+
+
+** Variable Importance **
+```{r}
+variable_important <- data.frame(importance(svm_model_all$finalModel)) %>% 
+mutate(predictor = rownames(.))
+
+variable_importance %>% 
+arrange(desc(…)) %>% 
+head(1)
+```
 
 
 

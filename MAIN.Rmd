@@ -47,7 +47,7 @@ What does the $𝐶$ parameter do in SVM classification? It tells the algorithm 
 
 A kernel function is a function which takes two data points as inputs and returns a similarity score, which just indicates how close the points are. The closer the data points, the higher the simialrity score! A cool thing about kernel functions is that in high dimensional spaces, where data could be hard to visualize and deal with, by using a kernel function, we can actually compute the similarity scores without doing any transformation on the data(i.e. reducing the dimension). Thus, a kernel trick is just using kernal function instead of using high-cost transformations.
 
-Common kernel functions that are used for SVM include: Linear kernel function (default kernel function just as the visualization above.), polynomial kernel function(similar to a linear kernel function but just raise the degree of the polynoimal above 1), radial basis kernel function(probably one of the best and practical kernel functions that works well when data points wrangle together).
+Common kernel functions that are used for SVM include: Linear kernel function (default kernel function just as the visualization above.), polynomial kernel function(similar to a linear kernel function but just raise the degree of the polynoimal above 1), radial basis kernel function(probably one of the best and practical kernel functions that works well when data points wrangle together, works well when polynoimal kernel funtions not giving satisfying results).
 
 ### Tuning parameter of a kernel function, $\gamma$
 
@@ -169,6 +169,7 @@ set.seed(253)
 
 #Tuning parameter c
 c <- seq(0.01, 10, length = 200)
+sig <- seq(0.01, 10, length = 200)
 grid <- expand.grid(sigma = c(.01, .015, 0.2), C = c(0.75, 0.9, 1, 1.1, 1.25))
 
 #linear svm model
@@ -195,12 +196,25 @@ svm_poly_all <- train(
   na.action = na.omit
   )
 
+#svm RBF model
+svm_rbf_all <- train(
+  species ~.,
+  data = kangaroo_selected,
+  method = "svmRadial",
+  trControl=trainControl(method = "cv", number = 10, selectionFunction = "best"),
+  preProcess = c("center", "scale"),
+  metric = "Accuracy",
+  tuneGrid = data.frame(C = c, sigma = sig),
+  na.action = na.omit
+)
+
 ```
 
 **Accuracy plots for the two models**
 ```{r}
 plot(svm_linear_all)
 plot(svm_poly_all)
+#plot(svm_rbf_all)
 ```
 
 **The best tuning parameter**
@@ -209,6 +223,8 @@ svm_linear_all$results %>%
   filter(C == svm_linear_all$bestTune$C)
 svm_poly_all$results %>%
   filter(C == svm_poly_all$bestTune$C)
+svm_rbf_all$results %>%
+  filter(C == svm_rbf_all$bestTune$C)
 ```
 \
 \

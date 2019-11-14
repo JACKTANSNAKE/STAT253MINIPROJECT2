@@ -7,9 +7,21 @@ output:
     toc_float: true
     code_folding: hide
 ---
+```{r, message = FALSE}
+library(caret)
+library(e1071)
+library(dplyr)
+library(kernlab)
+library(car)
+library(openxlsx)
+library(ggplot2)
+library(png)
+```
 
 ## Part 1: Background
+
 ### What is an SVM?
+
 A Support Vector Machine is a supervised machine learning algorithm that is suitable for both classification and regression. For a given set of data that is marked as one category or the other of a total of two categories, an SVM algorithm builds a model that assigns new examples to either of the two categories, making it a binary linear classifier. In an SVM model, cases of the dataset are points in a p-dimensional space, mapped so that they are separated by a p-1 dimension hyperplane with maximized gap. New cases are predicted by assigning each new case to either side of the hyperplane.
 
 ### What is a hyperplane?
@@ -18,14 +30,18 @@ The hyperplane is a flat affine subspace of demension p-1 in a p dimension space
 
 ### Details of hyperplane
 
-In reality, we probably can't make a perfect split because of the non-separable cases when observations from different categories mix with each other. There are errors when we are making classfiction for each observation. The error term is defined in 3 ways. If the observation is on the wrong side of the margin but the right side of the hyperplane, $\varepsilon_i > 0$, if the observation is the on the wrong side of the hyperplane, then $\varepsilon_i > 1$; if the observation is perfectly classfied, then $\varepsilon_i = 0$. Therefore, we also need to define a term of tolerance for the errors, and we define C as the sum of all errors. It determines the severity and number of violations that we will tolerate. Since we choose the level of tolerance, C is our tuning parameter in the SVM algorithm. 
+In reality, we usually can't make a perfect split because datasets might just not be linearly separable when observations from different categories mix with each other. Here we introduce the term slack variable $\zeta_i$ which allow some observations to fall off the margin but it penalizes them. Each slack variable is determined by the distance between each misclassified observation and the correct margin. In this scenario, our algorithm tries to keep $\zeta_i$ to zero while maximizing the margin. The tolerance term is defined as $𝐶\Sigma\zeta_i$, where $\Sigma\zeta_i$ is the sum of the distance from each misclassified observation to the correct margin and $𝐶$ is the regularization parameter that controls the trade-off between the slack variable penalty (misclassifications) and width of the margin(just like LASSO!).
 
+### Tuning the regularization parameter
 
+What does the $𝐶$ parameter do in SVM classification? It tells the algorithm how much you care about misclassified points. SVMs, in general, seek to find the maximum-margin hyperplane. That is, the line that has as much room on both sides as possible. A high value for $𝐶$ means that we want the misclassification to be punished hard, which tells the algorithm that we care more about classifying all of the training points correctly than leaving wiggle room for future data, thus the algorithm will produce small margin with low tolerance(low variance, high bias). A low value for $𝐶$ means that we want the misclassification to be hardly punished, which tells the algorithm that we care more about leaving room for future data than classify all of the training points correctly, thus the algorithm will generate a larger margin with higher tolerance(high variance, low bias). To be more precise, when we try to increase $𝐶$, we are betting that our training dataset contains the most extreme cases and future data will be further from the boundary than the cases our training dataset contains. Vice versa. The best $𝐶$ is usually determined using CV.
 
+### What is a kernel?
 
-
+### Tuning parameter of a kernel function, $\gamma$
 
 ### Pros and cons of SVM.
+
 Pros:
 - The solutions given by SVM are guaranteed to be global minimum instead of locally minimum, due to the nature of the optimization of the method.
 - SVM is a spectacular method that is suitable for both linearly and non-linearly separable data sets by using kernel tricks. The only thing to do is to tune the tuning parameter C.
@@ -36,26 +52,18 @@ Cons:
 - SVM is really computationally expensive and thus can not work with large data set.
 - SVM is not so good at dealing with data sets that have multiple overlapping classes.
 
-\
-\
-\
-\
-\
-\
+### Comparison among SVM and other algorithm
 
 
+\
+\
+\
+\
+\
+\
 
 ## Part 2: 2 predictor analysis
-```{r, message = FALSE}
-library(caret)
-library(e1071)
-library(dplyr)
-library(kernlab)
-library(car)
-library(openxlsx)
-library(VIM)
-```
-
+**Ready the data set**
 ```{r}
 kangaroo <- read.csv("https://www.macalester.edu/~ajohns24/data/kangaroo.csv")
 set.seed(253)
@@ -65,6 +73,14 @@ kangaroo_selected <- kangaroo %>%
 levels(kangaroo_selected$species)
 ```
 
+**visualization of data**
+```{r warning  = FALSE}
+ggplot(data = kangaroo_selected, aes(x = zygomatic.width, y = nasal.width, color = species)) + 
+  geom_point()
+```
+
+
+**Two-model build up**
 ```{r}
 #set the seed
 set.seed(253)
@@ -99,12 +115,13 @@ svm_poly <- train(
 
 ```
 
-
+**Accuracy plots for the two models**
 ```{r}
 plot(svm_model)
 plot(svm_poly)
 ```
 
+**The best tuning parameter**
 ```{r}
 svm_model$results %>% 
   filter(C == svm_model$bestTune$C)

@@ -14,9 +14,7 @@ A Support Vector Machine is a supervised machine learning algorithm that is suit
 
 ### What is a hyperplane?
 
-
-
-
+The hyperplane is a flat affine subspace of demension p-1 in a p dimension space. The goal of the hyperplane is to classify the data points into different categories correctly. The natural choice of hyperplane is maximal margin hyperplane. We calculate the distance of each observation to the hyperplane and define the minimum of the distance as the margin of the hyperplane. There are many hyperplanes but we want the one maximizes the margin. The intuition behind this is that the maximal margin hyperplane can give us a better split because it makes each group/category more distinct from each other by using the maximum of the margin, and our classification are more likely to have a high accuracy. 
 
 
 

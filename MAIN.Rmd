@@ -15,7 +15,7 @@ library(kernlab)
 library(car)
 library(openxlsx)
 library(ggplot2)
-library(png)
+
 ```
 
 ## Part 1: Background

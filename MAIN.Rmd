@@ -15,7 +15,6 @@ library(kernlab)
 library(car)
 library(openxlsx)
 library(ggplot2)
-
 ```
 
 ## Part 1: Background
@@ -195,6 +194,34 @@ e1071_quadratic_model <- svm(
 
 plot(e1071_quadratic_model, plot_data, zygomatic.width ~ nasal.width)
 ```
+
+```{r}
+#svm RBF model
+svm_rbf <- train(
+  species ~ zygomatic.width + nasal.width,
+  data = kangaroo_selected,
+  method = "svmRadial",
+  trControl=trainControl(method = "cv", number = 10, selectionFunction = "best"),
+  preProcess = c("center", "scale"),
+  metric = "Accuracy",
+  tuneGrid = data.frame(C = c, sigma = sig),
+  na.action = na.omit
+)
+
+svm_rbf$results %>%
+  filter(C == svm_rbf$bestTune$C)
+
+e1071_rbf_model <- svm(
+  species ~ zygomatic.width + nasal.width, 
+  data = plot_data,
+  method = "C-classification", 
+  kernel = "radial",
+  gamma = 0.461809,
+  cost = 0.461809)
+
+plot(e1071_rbf_model, plot_data, zygomatic.width ~ nasal.width)
+```
+
 
 Though we have convinced ourselves that a Linear split would be the best in this situation, we still attempted multiple degrees of polynomial kernel split, with degrees ranging from 1~5. Not suprisingly, when degree = 1, we had the same highest accuracy of 0.889, but with different $𝐶$, this is because the `svmPoly` method has another tuning parameter scale, which rescales the dataset thus giving a different yet still small $𝐶$. We also used the same technique we used above to plot the quadratic split(we are not going to plot all 5 degrees, since some degrees do not have good accuracys thus the plot should be kind of a mess). In the plot, the support vectors are marked as $X$, and black mark stands for fuliginosus and red mark stands for giganteus.
 

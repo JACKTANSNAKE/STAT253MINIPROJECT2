@@ -140,7 +140,7 @@ e1071_linear_model <- svm(
   kernel = "linear",
   cost = 0.160603)
 
-plot(e1071_linear_model, plot_data, zygomatic.width ~ nasal.width)
+plot(e1071_linear_model, plot_data, zygomatic.width ~ nasal.width, col = c("pink", "cadetblue1"))
 ```
 
 As we have mentioned above, a linear kernel seemed suffice for the SVM model, so we first tried out a Linear kernel SVM by using the `caret` package's `svmLinear` method. As we can see from the CV Accuracy plot, the model reached its best accuracy at the point very close to 0, which fits our expectation that only a small $𝐶$ is needed. So we arrived at an accuracy of 0.889 with the tuning parameter $𝐶$ 0.160603, using Cross Validation. Using caret, we were only able to generate a contourplot of the split with another package called `kernlab`, which was not so satisfying. Thus we used the CV results for another package `e1071` to generate one specific SVM model with the optimal tuning parameter that is able to generate a better splitting plot as is shown above. In the plot, the support vectors are marked as $X$, and black mark stands for fuliginosus and red mark stands for giganteus.
@@ -191,7 +191,7 @@ e1071_quadratic_model <- svm(
   degree = 2,
   cost = 0.7630151)
 
-plot(e1071_quadratic_model, plot_data, zygomatic.width ~ nasal.width)
+plot(e1071_quadratic_model, plot_data, zygomatic.width ~ nasal.width, col = c("pink", "cadetblue1"))
 ```
 
 Though we have convinced ourselves that a Linear split would be the best in this situation, we still attempted multiple degrees of polynomial kernel split, with degrees ranging from 1~5. Not suprisingly, when degree = 1, we had the same highest accuracy of 0.889, but with different $𝐶$, this is because the `svmPoly` method has another tuning parameter scale, which rescales the dataset thus giving a different yet still small $𝐶$. We also used the same technique we used above to plot the quadratic split(we are not going to plot all 5 degrees, since some degrees do not have good accuracys thus the plot should be kind of a mess). In the plot, the support vectors are marked as $X$, and black mark stands for fuliginosus and red mark stands for giganteus.
@@ -263,9 +263,7 @@ svm_rbf_all$results %>%
 ```
 
 **Visualiztion of Full SVM classification**
-```{r}
-
-```
+We can't plot the SVM classification with all predictors because our dimension of this plot would be too high for us to plot.  
 
 
 {r}

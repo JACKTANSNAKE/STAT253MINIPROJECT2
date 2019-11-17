@@ -344,7 +344,8 @@ Since we use all the predictors in this model, the dimension of the graph is too
 ** Variable Importance **
 
 ```{r}
-kangaroo_selected_1 <- kangaroo_selected %>%
+kangaroo_selected_1 <- kangaroo_selected%>%
+  mutate(Female = if_else(sex == "Female",1,0),Male = if_else(sex == "Male",1,0))%>%
   select(-sex)
 
 svm_linear_all_1 <- train(

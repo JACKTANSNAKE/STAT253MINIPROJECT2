@@ -167,6 +167,9 @@ svm_poly$results %>%
   filter(C == svm_poly$bestTune$C)
 ```
 
+
+The results of the polynomial model can also explain the problem of overfitting. The CV accuracy actually decreases as we increase the degree of the exponent, indicating that we are overfitting the training dataset. Therefore, we should choose the linear hyperplane because our accuracy on the new dataset would be the highest. 
+
 ```{r}
 svm_poly_1 <- train(
   species ~ zygomatic.width + nasal.width,
@@ -227,6 +230,8 @@ Though we have convinced ourselves that a Linear split would be the best in this
 
 ## Part 3: Full analysis
 
+Because we have all predictors to classify the species, we can't use a single graph to see the relationship before we train our model. We tried linear split, polynomial split, and radial split to see which method gives us the best accuracy. The algorithm below use all the predictors in the datset to create the hyperplane to classify the species. We also use the cross-validation method to account for the problem of overfitting. The algorithm normalizes all the data before the training process, because we don't want our results to be misled by the big data. Our tuning parameters are C which is the cost of the errors, and  
+
 ```{r}
 #set the seed
 set.seed(253)
@@ -274,12 +279,17 @@ svm_rbf_all <- train(
 
 ```
 
+
+
 **Accuracy plots for the two models**
 ```{r}
 plot(svm_linear_all)
 plot(svm_poly_all)
 #plot(svm_rbf_all)
 ```
+
+
+
 
 **The best tuning parameter**
 ```{r}
@@ -291,8 +301,11 @@ svm_rbf_all$results %>%
   filter(C == svm_rbf_all$bestTune$C)
 ```
 
+The CV accuracy of the linear model is 98.75% with the cost of 0.1104, the CV accuracy of the polynomial model is 97.14% with the cost of 0.01, and the CV accuracy of the radial model is 73.63% with the cost of 1.01402. We would choose the linear model which gives us the highest accuracy, and we should expect that our classification of species on the new data would be 98.75% correct. 
+
+
 **Visualiztion of Full SVM classification**
-We can't plot the SVM classification with all predictors because our dimension of this plot would be too high for us to plot.  
+Since we use all the predictors in this model, the dimension of the graph is too high for us to visualize the hyperplane. Therefore, we can't visualize the SVM hyperplane or the margins because of the high dimension.   
 
 
 {r}

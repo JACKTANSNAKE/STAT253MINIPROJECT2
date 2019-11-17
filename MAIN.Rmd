@@ -22,7 +22,7 @@ library(rminer)
 
 ### What is an SVM?
 
-A Support Vector Machine is a non-parametric supervised machine learning algorithm that uses a hyperplane, a separation threshold in p dimensions, to make binary classifications. The optimal hyperplane is the one with the maximal margin where the smallest distance (margin) from the vectors (closest datapoints that influences the choice of optimal planes) are maximized. Because maximal margin hyperplane can be unduly sensitive to new data (potentially overfitting) that are vectors, Support Vector Classifier allows misclassifications to decrease this sensitivity and better perform on new datasets. The tuning of epsilon, or the positive slack variables, [or C?] demonstrates a bias-variance trade-off in SVM. Support Vector Machines further extends this algorithm to cases of non-linear separations between categories by variable transformation.
+A Support Vector Machine is a non-parametric supervised machine learning algorithm that uses a hyperplane, a separation threshold in p dimensions, to make binary classifications. The optimal hyperplane is the one with the maximal margin where the smallest distance (margin) from the vectors (closest datapoints that influences the choice of optimal planes) are maximized. Because maximal margin hyperplane can be unduly sensitive to new data (potentially overfitting) that are vectors, Support Vector Classifier allows misclassifications to decrease this sensitivity and better perform on new datasets. The tuning of $\zeta$, or the positive slack variables, [or C?] demonstrates a bias-variance trade-off in SVM. Support Vector Machines further extends this algorithm to cases of non-linear separations between categories by variable transformation.
 
 (A Support Vector Machine is a supervised machine learning algorithm that is suitable for both classification and regression. For a given set of data that is marked as one category or the other of a total of two categories, an SVM algorithm builds a model that assigns new examples to either of the two categories, making it a binary linear classifier. In an SVM model, cases of the dataset are points in a p-dimensional space, mapped so that they are separated by a p-1 dimension hyperplane with maximized gap. New cases are predicted by assigning each new case to either side of the hyperplane.)
 
@@ -339,6 +339,25 @@ Since we use all the predictors in this model, the dimension of the graph is too
 
 
 ** Variable Importance **
+
+```{r}
+svm_linear_all_1 <- train(
+  species ~ .,
+  data = kangaroo_selected_1,
+  method = "svmLinear",
+  trControl=trainControl(method = "cv", number = 10, selectionFunction = "best"),
+  preProcess = c("center", "scale"),
+  metric = "Accuracy",
+  tuneGrid = data.frame(C = c),
+  na.action = na.omit
+  )
+```
+
+```{r}
+varImp(svm_linear_all_1)
+```
+
+
 
 ```{r}
 w <- t(e1071_linear_all_model$coefs) %*% e1071_linear_all_model$SV

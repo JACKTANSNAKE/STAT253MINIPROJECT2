@@ -341,6 +341,9 @@ Since we use all the predictors in this model, the dimension of the graph is too
 ** Variable Importance **
 
 ```{r}
+kangaroo_selected_1 <- kangaroo_selected %>%
+  select(-sex)
+
 svm_linear_all_1 <- train(
   species ~ .,
   data = kangaroo_selected_1,

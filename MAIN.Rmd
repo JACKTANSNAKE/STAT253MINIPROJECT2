@@ -16,6 +16,7 @@ library(car)
 library(openxlsx)
 library(ggplot2)
 library(rminer)
+library(pROC)
 ```
 
 ## Part 1: Background
@@ -334,21 +335,22 @@ The CV accuracy of the linear model is 98.75% with the cost of 0.1104, the CV ac
 **Visualiztion of Full SVM classification**
 Since we use all the predictors in this model, the dimension of the graph is too high for us to visualize the hyperplane. Therefore, we can't visualize the SVM hyperplane or the margins because of the high dimension.   
 
-{r}
-# Result table
 
+
+
+## Part 4: ### moreSummarize
 
 ** Variable Importance **
 
 ```{r}
-kangaroo_selected_1 <- kangaroo_selected %>%
+kangaroo_selected_1 <- kangaroo_selected%>%
+  mutate(Female = if_else(sex == "Female",1,0),Male = if_else(sex == "Male",1,0))%>%
   select(-sex)
-
 svm_linear_all_1 <- train(
   species ~ .,
   data = kangaroo_selected_1,
   method = "svmLinear",
-  trControl=trainControl(method = "cv", number = 10, selectionFunction = "best"),
+  trControl= trainControl(method = "cv", number = 10, selectionFunction = "best"),
   preProcess = c("center", "scale"),
   metric = "Accuracy",
   tuneGrid = data.frame(C = c),
@@ -356,21 +358,29 @@ svm_linear_all_1 <- train(
   )
 ```
 
+
+
+# Result table
 ```{r}
 varImp(svm_linear_all_1) 
 ```
 
-
+The most useful predictors when trying to classify kangaroos are `nasal.length`, `mandable.width`, `crest.width`, and `nasal.width`. These predictors are much more importnat than any of the other ones, as `nasal.length`, `mandable.width`, and `crest.width` all have importance greater than 90. The least important predictors are `lacrymal.width`, `palate.length`, and `basilar.length`. They all have importance less than 3.1, showing how vastly unimportant they are compared to the most important predictors. From this information, we know that the less important predictors could probably be removed from our model if we wanted to build a simpler model. The plot below shows the absolute value of the coefficients of all of the predictors in our model.
 
 ```{r}
 w <- t(e1071_linear_all_model$coefs) %*% e1071_linear_all_model$SV
 w1<- t(w)
+w2<- w1[order(-w1[,1]),]
+w2
+
 ```
 
 
 
 
-## Part 4: ### moreSummarize
+
+
+
 
 
 ## Part 5: Contributions

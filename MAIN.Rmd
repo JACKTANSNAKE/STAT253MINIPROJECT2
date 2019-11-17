@@ -106,6 +106,7 @@ set.seed(253)
 
 #Tuning parameter c
 c <- seq(0.01, 10, length = 200)
+sig <- seq(0.01, 10, length = 200)
 grid <- expand.grid(sigma = c(.01, .015, 0.2), C = c(0.75, 0.9, 1, 1.1, 1.25))
 
 #linear svm model

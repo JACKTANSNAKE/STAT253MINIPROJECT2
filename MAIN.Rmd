@@ -15,6 +15,7 @@ library(kernlab)
 library(car)
 library(openxlsx)
 library(ggplot2)
+library(rminer)
 ```
 
 ## Part 1: Background
@@ -279,6 +280,31 @@ svm_rbf_all <- train(
 
 ```
 
+```{r}
+e1071_linear_all_model <- svm(
+  species ~ ., 
+  data = kangaroo_selected,
+  method = "C-classification", 
+  kernel = "linear",
+  cost = 0.110402)
+
+e1071_poly_all_model <- svm(
+  species ~ ., 
+  data = kangaroo_selected,
+  method = "C-classification", 
+  kernel = "polynomial",
+  cost = 0.01)
+
+e1071_radial_all_model <- svm(
+  species ~ ., 
+  data = kangaroo_selected,
+  method = "C-classification", 
+  kernel = "radial",
+  cost = 1.01402	)
+
+
+```
+
 
 
 **Accuracy plots for the two models**
@@ -307,21 +333,16 @@ The CV accuracy of the linear model is 98.75% with the cost of 0.1104, the CV ac
 **Visualiztion of Full SVM classification**
 Since we use all the predictors in this model, the dimension of the graph is too high for us to visualize the hyperplane. Therefore, we can't visualize the SVM hyperplane or the margins because of the high dimension.   
 
-
 {r}
 # Result table
-kangaroo_selected$predictions <- predict(svm_linear_all, kangaroo_selected)
-table(kangaroo_selected$predictions, kangaroo_selected$species)
 
 
 ** Variable Importance **
-{r}
-variable_important <- data.frame(importance(svm_linear_all$finalModel)) %>% 
-mutate(predictor = rownames(.))
 
-variable_importance %>% 
-arrange(desc(…)) %>% 
-head(1)
+```{r}
+w <- t(e1071_linear_all_model$coefs) %*% e1071_linear_all_model$SV
+w1<- t(w)
+```
 
 
 

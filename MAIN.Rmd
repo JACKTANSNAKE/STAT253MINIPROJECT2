@@ -354,7 +354,7 @@ svm_linear_all_1 <- train(
 ```
 
 ```{r}
-varImp(svm_linear_all_1)
+varImp(svm_linear_all_1) 
 ```
 
 

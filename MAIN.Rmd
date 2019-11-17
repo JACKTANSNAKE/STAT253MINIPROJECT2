@@ -377,8 +377,7 @@ The most useful predictors when trying to classify kangaroos are `nasal.length`,
 ```{r}
 w <- t(e1071_linear_all_model$coefs) %*% e1071_linear_all_model$SV
 w1<- t(w)
-<<<<<<< HEAD
-w2<- w1[order(-w1[,1]),]
+w2 <- w1[order(-w1[,1]),]
 w2
 
 ```

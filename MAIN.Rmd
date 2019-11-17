@@ -15,7 +15,6 @@ library(kernlab)
 library(car)
 library(openxlsx)
 library(ggplot2)
-
 ```
 
 ## Part 1: Background
@@ -23,6 +22,8 @@ library(ggplot2)
 ### What is an SVM?
 
 A Support Vector Machine is a non-parametric supervised machine learning algorithm that uses a hyperplane, a separation threshold in p dimensions, to make binary classifications. The optimal hyperplane is the one with the maximal margin where the smallest distance (margin) from the vectors (closest datapoints that influences the choice of optimal planes) are maximized. Because maximal margin hyperplane can be unduly sensitive to new data (potentially overfitting) that are vectors, Support Vector Classifier allows misclassifications to decrease this sensitivity and better perform on new datasets. The tuning of epsilon, or the positive slack variables, [or C?] demonstrates a bias-variance trade-off in SVM. Support Vector Machines further extends this algorithm to cases of non-linear separations between categories by variable transformation.
+
+(A Support Vector Machine is a supervised machine learning algorithm that is suitable for both classification and regression. For a given set of data that is marked as one category or the other of a total of two categories, an SVM algorithm builds a model that assigns new examples to either of the two categories, making it a binary linear classifier. In an SVM model, cases of the dataset are points in a p-dimensional space, mapped so that they are separated by a p-1 dimension hyperplane with maximized gap. New cases are predicted by assigning each new case to either side of the hyperplane.)
 
 ### What is a hyperplane?
 
@@ -193,6 +194,34 @@ e1071_quadratic_model <- svm(
 
 plot(e1071_quadratic_model, plot_data, zygomatic.width ~ nasal.width, col = c("pink", "cadetblue1"))
 ```
+
+```{r}
+#svm RBF model
+svm_rbf <- train(
+  species ~ zygomatic.width + nasal.width,
+  data = kangaroo_selected,
+  method = "svmRadial",
+  trControl=trainControl(method = "cv", number = 10, selectionFunction = "best"),
+  preProcess = c("center", "scale"),
+  metric = "Accuracy",
+  tuneGrid = data.frame(C = c, sigma = sig),
+  na.action = na.omit
+)
+
+svm_rbf$results %>%
+  filter(C == svm_rbf$bestTune$C)
+
+e1071_rbf_model <- svm(
+  species ~ zygomatic.width + nasal.width, 
+  data = plot_data,
+  method = "C-classification", 
+  kernel = "radial",
+  gamma = 0.461809,
+  cost = 0.461809)
+
+plot(e1071_rbf_model, plot_data, zygomatic.width ~ nasal.width)
+```
+
 
 Though we have convinced ourselves that a Linear split would be the best in this situation, we still attempted multiple degrees of polynomial kernel split, with degrees ranging from 1~5. Not suprisingly, when degree = 1, we had the same highest accuracy of 0.889, but with different $𝐶$, this is because the `svmPoly` method has another tuning parameter scale, which rescales the dataset thus giving a different yet still small $𝐶$. We also used the same technique we used above to plot the quadratic split(we are not going to plot all 5 degrees, since some degrees do not have good accuracys thus the plot should be kind of a mess). In the plot, the support vectors are marked as $X$, and black mark stands for fuliginosus and red mark stands for giganteus.
 

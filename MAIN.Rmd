@@ -99,7 +99,7 @@ kangaroo_selected %>%
   count(kangaroo_selected$species)
 ```
 
-Here we dropped the `melanops` species for the sake of simplicity and because this species is not found in the region of interest. As we can see now, there are 50 observations of the `fuliginosus` species and 50 of the `giganteus` species.
+Here we dropped the `melanops` species for the sake of simplicity and because this species is not found in the region of interest. As we can see now, there are 50 observations of the `fuliginosus` species and 50 of the `giganteus` species. With this balance in observations between the two group, the predictions are unlikely to be biased towards either species.
 
 ### Visualization of `species` vs. 2 predictors
 ```{r warning = FALSE}

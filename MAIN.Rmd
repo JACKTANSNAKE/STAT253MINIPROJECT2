@@ -7,80 +7,89 @@ output:
     toc_float: true
     code_folding: hide
 ---
+
 ```{r, message = FALSE}
-library(caret)
-library(e1071)
-library(dplyr)
-library(kernlab)
-library(car)
-library(openxlsx)
-library(ggplot2)
-library(rminer)
-library(pROC)
+library(openxlsx)     #for data wrangling
+library(dplyr)        #for data wrangling
+library(caret)        #for model training 
+library(car)          #for model training
+library(e1071)        #for model training, specific to SVM
+library(kernlab)      #for model training, specific to SVM
+library(ggplot2)      #for plotting
+library(rminer)       #for model evaluation
+library(pROC)         #for model evaluation
 ```
 
 ## Part 1: Background
 
-### What is an SVM?
+### What is SVM?
 
-A Support Vector Machine is a non-parametric supervised machine learning algorithm that uses a hyperplane, a separation threshold in p dimensions, to make binary classifications. The optimal hyperplane is the one with the maximal margin where the smallest distance (margin) from the vectors (closest datapoints that influences the choice of optimal planes) are maximized. Because maximal margin hyperplane can be unduly sensitive to new data (potentially overfitting) that are vectors, Support Vector Classifier allows misclassifications to decrease this sensitivity and better perform on new datasets. The tuning of $\zeta$, or the positive slack variables, [or C?] demonstrates a bias-variance trade-off in SVM. Support Vector Machines further extends this algorithm to cases of non-linear separations between categories by variable transformation.
+Support Vector Machine is a non-parametric supervised machine learning algorithm that uses a hyperplane, a separation threshold in p dimensions, to make binary classifications. The optimal hyperplane is the one with the maximal margin where the smallest distance (margin) from the vectors (closest datapoints that influences the choice of optimal planes) are maximized. Because maximal margin hyperplane can be unduly sensitive to new data (potentially overfitting) that are vectors, Support Vector Classifier allows misclassifications to decrease this sensitivity and better perform on new datasets. The tuning of $\zeta$, or the positive slack variables, demonstrates a bias-variance trade-off in SVM. Support Vector Machines further extends this algorithm to cases of non-linear separations between categories by variable transformation.
 
-(A Support Vector Machine is a supervised machine learning algorithm that is suitable for both classification and regression. For a given set of data that is marked as one category or the other of a total of two categories, an SVM algorithm builds a model that assigns new examples to either of the two categories, making it a binary linear classifier. In an SVM model, cases of the dataset are points in a p-dimensional space, mapped so that they are separated by a p-1 dimension hyperplane with maximized gap. New cases are predicted by assigning each new case to either side of the hyperplane.)
+### Hyperplane and Maximal Margin Hyperplane
 
-### What is a hyperplane?
+In SVM, the hyperplane is a flat affine subspace of demension (p-1) in a p-dimension space that is used to classify the datapoints into categories correctly. There are many possible hyperplanes, and the optimal choice is the maximal margin hyperplane with the largest margin (margin is defined as the minimum of all distances from datapoints to the hyperplane). Using the maximal margin gives us a better split as each categories are as distinct from each other as possible, and a high accuracy for the model's classifications. 
 
-The hyperplane is a flat affine subspace of demension p-1 in a p dimension space. The goal of the hyperplane is to classify the data points into different categories correctly. The natural choice of hyperplane is maximal margin hyperplane. We calculate the distance of each observation to the hyperplane and define the minimum of the distance as the margin of the hyperplane. There are many hyperplanes but we want the one maximizes the margin. The intuition behind this is that the maximal margin hyperplane can give us a better split because it makes each group/category more distinct from each other by using the maximum of the margin, and our classification are more likely to have a high accuracy. 
+### Support Vector Classifier and slack variable
 
-### Details of hyperplane
+In reality, a perfect split is not always possible when categories are not linearly separable or observations from different categories mix with each other. Support Vector Classifier adds the positive term slack variable $\zeta_i$ to allow for misclassifications, cases in which observations are on the wrong side of the margin or of the hyperplane, but also penalizes them. Each slack variable is determined by the distance between individual misclassified observations and the correct margin. Here, the optimal model minimizes $\zeta_i$ while maximizing the margin. The tolerance term is defined as $𝐶\Sigma\zeta_i$, where $\Sigma\zeta_i$ is the sum of distances from all misclassified observations to the correct margin and $𝐶$ is the regularization parameter that controls the trade-off between the slack variable penalty (misclassifications) and the width of the margin (similar to LASSO!).
 
-In reality, we usually can't make a perfect split because datasets might just not be linearly separable when observations from different categories mix with each other. Here we introduce the term slack variable $\zeta_i$ which allow some observations to fall off the margin but it penalizes them. Each slack variable is determined by the distance between each misclassified observation and the correct margin. In this scenario, our algorithm tries to keep $\zeta_i$ to zero while maximizing the margin. The tolerance term is defined as $𝐶\Sigma\zeta_i$, where $\Sigma\zeta_i$ is the sum of the distance from each misclassified observation to the correct margin and $𝐶$ is the regularization parameter that controls the trade-off between the slack variable penalty (misclassifications) and width of the margin(just like LASSO!).
-
-### Tuning the regularization parameter
+### Tuning the regularization parameter C
 
 ![](Slack-variables.png)
 
-What does the $𝐶$ parameter do in SVM classification? It tells the algorithm how much you care about misclassified points. SVMs, in general, seek to find the maximum-margin hyperplane. That is, the line that has as much room on both sides as possible. A high value for $𝐶$ means that we want the misclassification to be punished hard, which tells the algorithm that we care more about classifying all of the training points correctly than leaving wiggle room for future data, thus the algorithm will produce small margin with low tolerance(low variance, high bias). A low value for $𝐶$ means that we want the misclassification to be hardly punished, which tells the algorithm that we care more about leaving room for future data than classify all of the training points correctly, thus the algorithm will generate a larger margin with higher tolerance(high variance, low bias). To be more precise, when we try to increase $𝐶$, we are betting that our training dataset contains the most extreme cases and future data will be further from the boundary than the cases our training dataset contains. Vice versa. The best $𝐶$ is usually determined using CV.
+In SVM classification, the regularization parameter $𝐶$ tells the algorithm how much you care about misclassified points. To reiterate, SVM's goal is to find the maximum-margin hyperplane, one that is as far from all datapoints or has as much room on both sides as possible. A high value for $𝐶$ means that we care more about classifying all training datapoints correctly than leaving wiggle room for future data. It tells the algorithm to punish misclassifications heavily, thus the algorithm will produce small margin with low tolerance (low variance, high bias). Conversely, low $𝐶$ values are used if we care more about leaving room for future data than classify all of the training points correctly. Then, misclassifications would be lightly punished and the algorithm will generate a larger margin with higher tolerance (high variance, low bias). When we increase $𝐶$, we are betting that our training dataset contains the most extreme cases and future data will be further from the boundary than the cases our training dataset contains, and vice versa. The best $𝐶$ is usually determined using CV.
 
-### What is a kernel trick?
+### Support Vector Machine and kernel function  
 
-A kernel function is a function which takes two data points as inputs and returns a similarity score, which just indicates how close the points are. The closer the data points, the higher the simialrity score! A cool thing about kernel functions is that in high dimensional spaces, where data could be hard to visualize and deal with, by using a kernel function, we can actually compute the similarity scores without doing any transformation on the data(i.e. reducing the dimension). Thus, a kernel trick is just using kernal function instead of using high-cost transformations.
+Support Vector Machine uses variable transformations to build non-linear hyperplanes. A kernel function is a variable transformation technique that takes two datapoints as inputs and returns a similarity score, which indicates how close datapoints. Thus, the closer the datapoints, the higher their simialrity scores. A cool thing about kernel functions is that in high dimensional spaces, where data could be hard to visualize and deal with, by using a kernel function, we can actually compute the similarity scores without doing any transformation on the data (i.e. reducing the dimension). Thus, a kernel trick is just using kernal function instead of using high-cost transformations.
 
-Common kernel functions that are used for SVM include: Linear kernel function (default kernel function just as the visualization above.), polynomial kernel function(similar to a linear kernel function but just raise the degree of the polynoimal above 1), radial basis kernel function(probably one of the best and practical kernel functions that works well when data points wrangle together, works well when polynoimal kernel funtions not giving satisfying results).
+Kernel functions commonly used for SVM are linear kernel function (default kernel function, visualization in image above), polynomial kernel function (the hyperplane takes polynomial degrees higher than 1), radial basis kernel function (probably one of the best and most practical kernel functions that works well when categories are not easily separable and when polynoimal kernel functions do not produce good classifications).
 
 ### Tuning parameter of a kernel function, $\gamma$
 
-It's hard to explain how this $\gamma$ parameter really works, but the idea is that when we use kernel functions to find the boundary that's suitable for our dataset, the boundary(or called Gaussian boundary) dissipates as they get further from support vectors and this $\gamma$ parameter basically controls how quickly the dissipation happens. In general, if a large $\gamma$ is chosen, the boundary will dissipate slower, meaning that we have a more fixed boundary and similar to using a large $𝐶$, we are betting that future data will fall within this more fixed boundary thus indicating high bias and low variance. Vice versa!
+It's hard to explain how this $\gamma$ parameter really works, but the idea is that when we use kernel functions to find the boundary suitable for our dataset, the boundary (called "Gaussian boundary") dissipates as they get further from support vectors and this $\gamma$ parameter basically controls how quickly the dissipation happens. In general, if a large $\gamma$ is chosen, the boundary will dissipate more slowly, meaning that we have a more fixed boundary and, similar to using a large $𝐶$, we are betting that future data will fall within this more fixed boundary. These tunings correspond to a model with high bias and low variance. Vice versa, small $\gamma$ and small $𝐶$ results in low bias, high variance models.
 
 ### Pros and cons of SVM.
 
 Pros:
-- The solutions given by SVM are guaranteed to be global minimum instead of locally minimum, due to the nature of the optimization of the method.
-- SVM is a spectacular method that is suitable for both linearly and non-linearly separable data sets by using kernel tricks. The only thing to do is to tune the tuning parameter C.
-- SVM works well with data sets that have low dimentionality as well as data sets that have high dimensionality. The algorithm works well with high-dimension because the complexity of training data set in SVM is generally characterized by the support vectors rather than the dimension of the data set.
-- SVM can work effectively on smaller training data set because it does not rely on the entire data.
+- The model given by SVM are guaranteed to be global instead of local optimum because SVM does not take a step-wise approach.
+- SVM is a spectacular method suitable for datasets with both linearly and non-linearly separable categories, the latter by using kernel tricks. The only thing to do is to tune the regularization parameter C.
+- SVM works well with datasets that have low dimentionality as well as data sets that have high dimensionality. The algorithm works well with high-dimension because the complexity of training data set in SVM is generally characterized by the support vectors rather than the dimension of the dataset.
+- SVM can work effectively on smaller training datasets because it does not rely on the entire data.
 
 Cons:
-- SVM is really computationally expensive and thus can not work with large data set.
-- SVM is not so good at dealing with data sets that have multiple overlapping classes.
+- SVM is really computationally expensive and thus should not be used with large datasets.
+- SVM is not so good at dealing with datasets that have multiple overlapping classes.
 
-### Comparison among SVM and other classification algorithm
+### Comparison between SVM and other classification algorithms
 
-SVM vs. logistic classification: Since logistic classfication can only deal with binary predictors, SVM is just better than logistic in almost every aspect. Though SVM is by default only able to deal with binary predictors as well, as ISLR textbook mentions we can deal with multiclass predictors using techniques called one-versus-one classification or one-versus-all classification.
+SVM vs. Logistic Regression: Logistic regression is limited to binary classifications. Though SVM is by default only able to deal with binary predictors as well, as ISLR textbook mentions we can predict variables of more than 2 groups using techniques called one-versus-one classification or one-versus-all classification.
 
-SVM vs. KNN: In practice, KNN scales badly, gives kind of blocky boundarys and hard-to-explain models. Also, KNN does not work well with high dimensionality datasets. SVM in general does not have this problem and is better.
+SVM vs. KNN: In practice, KNN scales badly, produces blocky boundaries and models that are hard to interpret. Also, KNN does not work well with high dimensionality datasets. SVM in general does not have this problem and is better.
 
-SVM vs. Tree: Trees are greedy, which gives the locally optimal results rather than global optimal result. SVM is not greedy.
+SVM vs. Tree: Trees are greedy, giving the locally rather than globally optimal results. SVM is not greedy.
 
-SVM vs. RandomForest: Good things about Randomforests are that randomforest gives a probablistic model that indicates the probability that a given data point falls into a class. Aside from that, SVM usually gives better results when it applies.
+SVM vs. RandomForest: An advantage of Randomforests is that it gives a probablistic model that indicates the probability that a given datapoint falls into a class. Aside from that, SVM usually gives better results in cases that it can perform well.
 
-Though from above we have come to know that SVM is better than other classification algorithm when it applies, but what about when it doesn't apply? Considering the cons of SVM listed in the previous section, we generally do not want to use SVM when: 1) the given dataset has a lot of data point, say $10^6$, which makes it too computationally inefficient to use SVM; 2) data with many features wrangles together. Though when data wrangles with each other all algorithms tend to perform bad, SVM usually works worse in this case.
+In general, SVM is better than other classification algorithms in cases when it can perform well. Considering the cons of SVM listed in the previous section, we generally do not want to use SVM when: 1) the given dataset has a lot of observations, say $10^6$, which makes it too computationally costly to use SVM, and 2) observations wrangle and cannot be separated. Although when data wrangles with each other all algorithms tend to perform badly, SVM usually does the worst in this case.
 
-## Part 2: 2 predictor analysis
 
-**Ready the data set**
+\
+\
+
+
+## Part 2: 2-predictor analysis
+
+### Prepare the dataset
 ```{r}
+#Load the dataset
 kangaroo <- read.csv("https://www.macalester.edu/~ajohns24/data/kangaroo.csv")
+
+#Set the seed
 set.seed(253)
+
+#Remove observations of the `melanops` species
 kangaroo_selected <- kangaroo %>% 
   filter(species != c("melanops")) %>%
   mutate_if(is.factor, ~droplevels(.))
@@ -90,27 +99,27 @@ kangaroo_selected %>%
   count(kangaroo_selected$species)
 ```
 
-Here we dropped the `melanops` species for the sake of simplicity. As we can see now, there are 50 of the fuliginosus species and 50 of the giganteus species.
+Here we dropped the `melanops` species for the sake of simplicity and because this species is not found in the region of interest. As we can see now, there are 50 observations of the `fuliginosus` species and 50 of the `giganteus` species.
 
-**visualization of data**
+### Visualization of `species` vs. 2 predictors
 ```{r warning = FALSE}
 ggplot(data = kangaroo_selected, aes(x = zygomatic.width, y = nasal.width, color = species)) + 
   geom_point()
 ```
 
-Since we are now only doing a two-dimension analysis on `zygomatic.width` and `nasal.width`, we can plot the dataset and see what kind of kernel we want to use for our svm model. Luckily, in the plot we can tell that a linear kernel seems fine in this settings and maybe we want a rather small value for the regularization parameter $𝐶$, since there are not so many extreme cases that we want to penalize.
+Since we are now only doing a two-dimension analysis on `zygomatic.width` and `nasal.width`, we can plot the dataset and see what kind of kernel we want to use for our SVM model. We can see that the two species are linearly separable in most cases and there are few cases that we want to penalize for misclassifications. Thus, a linear kernel seems sufficient and maybe we want a rather small value for the regularization parameter $𝐶$.
 
-**Two-model build up**
+### Building 2-predictor Model
 ```{r}
-#set the seed
+#Set the seed
 set.seed(253)
 
-#Tuning parameter c
+#Tuning parameter C
 c <- seq(0.01, 10, length = 200)
 sig <- seq(0.01, 10, length = 200)
 grid <- expand.grid(sigma = c(.01, .015, 0.2), C = c(0.75, 0.9, 1, 1.1, 1.25))
 
-#linear svm model
+#Linear SVM model
 svm_linear <- train(
   species ~ zygomatic.width + nasal.width,
   data = kangaroo_selected,
@@ -122,14 +131,14 @@ svm_linear <- train(
   na.action = na.omit
   )
 
-#plot the accuracies
+#Plot the accuracies
 plot(svm_linear)
 
-#filtering out the best Tuning parameter for C
+#Optimal model results
 svm_linear$results %>% 
   filter(C == svm_linear$bestTune$C)
 
-#visualization of the Linear split
+#Visualization of the Linear split
 kernlab::plot(svm_linear$finalModel)
 ```
 
@@ -147,8 +156,135 @@ e1071_linear_model <- svm(
 plot(e1071_linear_model, plot_data, zygomatic.width ~ nasal.width, col = c("pink", "cadetblue1"))
 ```
 
-As we have mentioned above, a linear kernel seemed suffice for the SVM model, so we first tried out a Linear kernel SVM by using the `caret` package's `svmLinear` method. As we can see from the CV Accuracy plot, the model reached its best accuracy at the point very close to 0, which fits our expectation that only a small $𝐶$ is needed. So we arrived at an accuracy of 0.889 with the tuning parameter $𝐶$ 0.160603, using Cross Validation. Using caret, we were only able to generate a contourplot of the split with another package called `kernlab`, which was not so satisfying. Thus we used the CV results for another package `e1071` to generate one specific SVM model with the optimal tuning parameter that is able to generate a better splitting plot as is shown above. In the plot, the support vectors are marked as $X$, and black mark stands for fuliginosus and red mark stands for giganteus.
+As anticipated, a linear kernel sufficed for the 2-predictor SVM model. We first tried out a Linear Kernel SVM by using the `caret` package's `svmLinear` method. The CV Accuracy plot shows that the model reached the highest accuracy at values of C that are very close to 0, which matches our prediction that only a small $𝐶$ is needed. We used 10-fold cross validation to identify this optimal mode, which has an accuracy of 0.889 at $𝐶$ = 0.160603. Using `caret` and `kernlab`, we were able to generate a contourplot of the split. However, as the boundaries were not clear in this plot, we used the CV results as input for another package `e1071` with a kernel function to further refine our model. In the plot, the support vectors are marked as $X$, and black mark stands for `fuliginosus` and red mark stands for `giganteus`. In this final model with $𝐶$ = 0.16060 and a linear kernal function, almost all observations are correctly classified.
 
+
+\
+\
+
+
+## Part 3: Full analysis
+
+Because we have all predictors to classify the species, we can't use a single graph to see the relationship before we train our model. The algorithm below uses all the predictors in the datset to create the hyperplane to classify the species. We tried linear split, polynomial split, and radial split (radial base function, or RBF) to see which method gives us the highest accuracy. We started with a large sequence of C and used the cross validation to identify the optimal tuning value. The algorithm normalizes all the data before the training process (`preProcess`) to standardize variables of different scales and ensure that no predictors exert unduly large influence over the algorithm merely because of its unit and scale. 
+
+### Building the all-predictor model
+```{r}
+#Set the seed
+set.seed(253)
+
+#Tuning parameter C
+c <- seq(0.01, 10, length = 200)
+sig <- seq(0.01, 10, length = 200)
+grid <- expand.grid(sigma = c(.01, .015, 0.2), C = c(0.75, 0.9, 1, 1.1, 1.25))
+
+#SVM Linear model
+svm_linear_all <- train(
+  species ~ .,
+  data = kangaroo_selected,
+  method = "svmLinear",
+  trControl=trainControl(method = "cv", number = 10, selectionFunction = "best"),
+  preProcess = c("center", "scale"),
+  metric = "Accuracy",
+  tuneGrid = data.frame(C = c),
+  na.action = na.omit
+  )
+
+#Plot the accuracies
+plot(svm_linear_all)
+
+#Model with linear kernel
+e1071_linear_all_model <- svm(
+  species ~ ., 
+  data = kangaroo_selected,
+  method = "C-classification", 
+  kernel = "linear",
+  cost = 0.110402)
+```
+
+Similar to Part 2, we used the results of `caret` SVM training to refine our `svm_linear_all` model with a linear kernel and $𝐶$ = 0.110402. We also built models with a polynomial and a radial kernel but found that these resulted in complex models that did not significancly improve accuracy. Thus, our final model is the linear SVM with a linear kernel and tuning parameter $𝐶$ = 0.110402.
+
+### Optimal model
+```{r}
+svm_linear_all$results %>% 
+  filter(C == svm_linear_all$bestTune$C)
+```
+
+The CV accuracy of the linear model is 98.75% with the cost of 0.1104, the CV accuracy of the polynomial model is 97.14% with the cost of 0.01, and the CV accuracy of the radial model is 73.63% with the cost of 1.01402. We would choose the linear model which gives us the highest accuracy, and we should expect that our classification of species on the new data would be 98.75% correct. 
+
+
+**Visualiztion of Full SVM classification**
+Since we use all the predictors in this model, the dimension of the graph is too high for us to visualize the hyperplane. Therefore, we can't visualize the SVM hyperplane or the margins because of the high dimension.   
+
+
+\
+\
+
+
+## Part 4: Summary
+
+The final model using all predictors in the dataset is a linear SVM model with $𝐶$ = 0.11040 and a linear kernel. It can accurately predict 98.75% of new datasets, which is a great result from cross validation.
+
+```{r}
+#Create a dataset with categorical variable `sex` mutated to 2 numeric variables for `varImp` function
+kangaroo_selected_1 <- kangaroo_selected%>%
+  mutate(Female = if_else(sex == "Female",1,0),Male = if_else(sex == "Male",1,0))%>%
+  select(-sex)
+
+svm_linear_all_1 <- train(
+  species ~ .,
+  data = kangaroo_selected_1,
+  method = "svmLinear",
+  trControl= trainControl(method = "cv", number = 10, selectionFunction = "best"),
+  preProcess = c("center", "scale"),
+  metric = "Accuracy",
+  tuneGrid = data.frame(C = c),
+  na.action = na.omit
+  )
+```
+
+
+```{r}
+varImp(svm_linear_all_1) 
+```
+
+The most useful predictors for predicting kangaroo species are `nasal.length`, `mandable.width`, `crest.width`, and `nasal.width` with importance values greater than 90. The least important predictors classifying kangaroo species are `lacrymal.width`, `palate.length`, and `basilar.length`. They all have importance less than 3.1, showing how vastly unimportant they are compared to the most important predictors. This ranking can be useful in identifying the least or lesser important predictors to be removed from our model if we wanted to build a simpler model. The plot below shows the magnitude (absolute value) of the coefficients of all of the predictors in our model.
+
+```{r}
+#
+w <- t(e1071_linear_all_model$coefs) %*% e1071_linear_all_model$SV
+w1<- t(w)
+w2 <- w1[order(-w1[,1]),]
+w2
+```
+
+
+```{r}
+#Absolute values of predictor coefficients
+w1
+plot(abs(w1))
+```
+
+Using the powerful classification algorithm SVM, we built highly accurate models for identifying 2 species of kangaroo in Australia. This is a linear SVM model with low $C$ value and a linear kernal term. The results of this analysis also advanced our understanding of the relationship between species and anatomical predictors collected for the kangaroo dataset. We established that, at least in distinguishing between 2 species `fuliginosus` and `giganteus`, `nasal.length`, `mandable.width`, `crest.width` and `nasal.width` are particularly important while `lacrymal.width`, `palate.length`, and `basilar.length` are the least important and can be removed for simpler models. An application of this conclusion is a focus on collecting data for the most important variables helpful for species identification.
+
+
+\
+\
+
+
+## Part 5: Contributions
+
+All four members studied SVM as a machine learning algorithm together.
+Jack and Debbie started the project, researched implementations of SVM on R and wrote the codes for building SVM models.
+Alex and Phuong finished the analysis and editting for this write-up.
+
+
+\
+\
+
+
+## Appendix
+
+### 2-predictor analysis
 ```{r}
 #svm polynomial model
 svm_poly <- train(
@@ -170,8 +306,7 @@ svm_poly$results %>%
   filter(C == svm_poly$bestTune$C)
 ```
 
-
-The results of the polynomial model can also explain the problem of overfitting. The CV accuracy actually decreases as we increase the degree of the exponent, indicating that we are overfitting the training dataset. Therefore, we should choose the linear hyperplane because our accuracy on the new dataset would be the highest. 
+The results of the polynomial model demonstrates the problem of overfitting. The CV accuracy actually decreases as we increase the degree of the exponent, indicating that polynomial models are overfit to the training dataset. As a result, we chose the linear SVM model that was simpler and had high accuracy.
 
 ```{r}
 svm_poly_1 <- train(
@@ -228,35 +363,13 @@ e1071_rbf_model <- svm(
 plot(e1071_rbf_model, plot_data, zygomatic.width ~ nasal.width)
 ```
 
+Though we have convinced ourselves that a Linear split would be the best in this situation, we still attempted multiple degrees of polynomial kernel split, with degrees ranging from 1~5. Not suprisingly, when degree = 1, we had the same highest accuracy of 0.889, but with different $𝐶$, this is because the `svmPoly` method has another tuning parameter scale, which rescales the dataset thus giving a different yet still small $𝐶$. We also used the same technique we used above to plot the quadratic split(we are not going to plot all 5 degrees, since some degrees do not have good accuracys thus the plot should be kind of a mess). In the plot, the support vectors are marked as $X$, and black mark stands for `fuliginosus` and red mark stands for `giganteus`.
 
-Though we have convinced ourselves that a Linear split would be the best in this situation, we still attempted multiple degrees of polynomial kernel split, with degrees ranging from 1~5. Not suprisingly, when degree = 1, we had the same highest accuracy of 0.889, but with different $𝐶$, this is because the `svmPoly` method has another tuning parameter scale, which rescales the dataset thus giving a different yet still small $𝐶$. We also used the same technique we used above to plot the quadratic split(we are not going to plot all 5 degrees, since some degrees do not have good accuracys thus the plot should be kind of a mess). In the plot, the support vectors are marked as $X$, and black mark stands for fuliginosus and red mark stands for giganteus.
 
-## Part 3: Full analysis
-
-Because we have all predictors to classify the species, we can't use a single graph to see the relationship before we train our model. We tried linear split, polynomial split, and radial split to see which method gives us the best accuracy. The algorithm below use all the predictors in the datset to create the hyperplane to classify the species. We also use the cross-validation method to account for the problem of overfitting. The algorithm normalizes all the data before the training process, because we don't want our results to be misled by the big data. Our tuning parameters are C which is the cost of the errors, and  
+### All-predictor analysis
 
 ```{r}
-#set the seed
-set.seed(253)
-
-#Tuning parameter c
-c <- seq(0.01, 10, length = 200)
-sig <- seq(0.01, 10, length = 200)
-grid <- expand.grid(sigma = c(.01, .015, 0.2), C = c(0.75, 0.9, 1, 1.1, 1.25))
-
-#linear svm model
-svm_linear_all <- train(
-  species ~ .,
-  data = kangaroo_selected,
-  method = "svmLinear",
-  trControl=trainControl(method = "cv", number = 10, selectionFunction = "best"),
-  preProcess = c("center", "scale"),
-  metric = "Accuracy",
-  tuneGrid = data.frame(C = c),
-  na.action = na.omit
-  )
-
-#svm polynomial model
+#SVM Polynomial model
 svm_poly_all <- train(
   species ~ .,
   data = kangaroo_selected,
@@ -268,7 +381,23 @@ svm_poly_all <- train(
   na.action = na.omit
   )
 
-#svm RBF model
+e1071_poly_all_model <- svm(
+  species ~ ., 
+  data = kangaroo_selected,
+  method = "C-classification", 
+  kernel = "polynomial",
+  cost = 0.01)
+
+plot(svm_poly_all)
+
+
+svm_poly_all$results %>%
+  filter(C == svm_poly_all$bestTune$C)
+```
+
+
+```{r}
+#SVM RBF model
 svm_rbf_all <- train(
   species ~.,
   data = kangaroo_selected,
@@ -280,114 +409,15 @@ svm_rbf_all <- train(
   na.action = na.omit
 )
 
-```
-
-```{r}
-e1071_linear_all_model <- svm(
-  species ~ ., 
-  data = kangaroo_selected,
-  method = "C-classification", 
-  kernel = "linear",
-  cost = 0.110402)
-
-e1071_poly_all_model <- svm(
-  species ~ ., 
-  data = kangaroo_selected,
-  method = "C-classification", 
-  kernel = "polynomial",
-  cost = 0.01)
-
 e1071_radial_all_model <- svm(
   species ~ ., 
   data = kangaroo_selected,
   method = "C-classification", 
   kernel = "radial",
-  cost = 1.01402	)
+  cost = 1.01402)
 
+plot(svm_rbf_all)
 
-```
-
-
-
-**Accuracy plots for the two models**
-```{r}
-plot(svm_linear_all)
-plot(svm_poly_all)
-#plot(svm_rbf_all)
-```
-
-
-
-
-**The best tuning parameter**
-```{r}
-svm_linear_all$results %>% 
-  filter(C == svm_linear_all$bestTune$C)
-svm_poly_all$results %>%
-  filter(C == svm_poly_all$bestTune$C)
 svm_rbf_all$results %>%
   filter(C == svm_rbf_all$bestTune$C)
 ```
-
-The CV accuracy of the linear model is 98.75% with the cost of 0.1104, the CV accuracy of the polynomial model is 97.14% with the cost of 0.01, and the CV accuracy of the radial model is 73.63% with the cost of 1.01402. We would choose the linear model which gives us the highest accuracy, and we should expect that our classification of species on the new data would be 98.75% correct. 
-
-
-**Visualiztion of Full SVM classification**
-Since we use all the predictors in this model, the dimension of the graph is too high for us to visualize the hyperplane. Therefore, we can't visualize the SVM hyperplane or the margins because of the high dimension.   
-
-
-
-
-## Part 4: ### moreSummarize
-
-# Result table
-
-
-
-
-## Part 4: ### moreSummarize
-
-** Variable Importance **
-
-```{r}
-kangaroo_selected_1 <- kangaroo_selected%>%
-  mutate(Female = if_else(sex == "Female",1,0),Male = if_else(sex == "Male",1,0))%>%
-  select(-sex)
-svm_linear_all_1 <- train(
-  species ~ .,
-  data = kangaroo_selected_1,
-  method = "svmLinear",
-  trControl= trainControl(method = "cv", number = 10, selectionFunction = "best"),
-  preProcess = c("center", "scale"),
-  metric = "Accuracy",
-  tuneGrid = data.frame(C = c),
-  na.action = na.omit
-  )
-```
-
-
-
-# Result table
-```{r}
-varImp(svm_linear_all_1) 
-```
-
-The most useful predictors when trying to classify kangaroos are `nasal.length`, `mandable.width`, `crest.width`, and `nasal.width`. These predictors are much more importnat than any of the other ones, as `nasal.length`, `mandable.width`, and `crest.width` all have importance greater than 90. The least important predictors are `lacrymal.width`, `palate.length`, and `basilar.length`. They all have importance less than 3.1, showing how vastly unimportant they are compared to the most important predictors. From this information, we know that the less important predictors could probably be removed from our model if we wanted to build a simpler model. The plot below shows the absolute value of the coefficients of all of the predictors in our model.
-
-```{r}
-w <- t(e1071_linear_all_model$coefs) %*% e1071_linear_all_model$SV
-w1<- t(w)
-w2 <- w1[order(-w1[,1]),]
-w2
-
-```
-
-
-
-w1
-plot(abs(w1))
-```
-
-
-## Part 5: Contributions
-

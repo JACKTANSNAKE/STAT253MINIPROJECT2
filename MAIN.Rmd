@@ -52,25 +52,25 @@ It's hard to explain how this $\gamma$ parameter really works, but the idea is t
 
 ### Pros and cons of SVM.
 
-Pros:
-- The model given by SVM are guaranteed to be global instead of local optimum because SVM does not take a step-wise approach.
-- SVM is a spectacular method suitable for datasets with both linearly and non-linearly separable categories, the latter by using kernel tricks. The only thing to do is to tune the regularization parameter C.
-- SVM works well with datasets that have low dimentionality as well as data sets that have high dimensionality. The algorithm works well with high-dimension because the complexity of training data set in SVM is generally characterized by the support vectors rather than the dimension of the dataset.
-- SVM can work effectively on smaller training datasets because it does not rely on the entire data.
+Pros:<br/>
+- The model given by SVM are guaranteed to be global instead of local optimum because SVM does not take a step-wise approach.<br/>
+- SVM is a spectacular method suitable for datasets with both linearly and non-linearly separable categories, the latter by using kernel tricks. The only thing to do is to tune the regularization parameter C.<br/>
+- SVM works well with datasets that have low dimentionality as well as data sets that have high dimensionality. The algorithm works well with high-dimension because the complexity of training data set in SVM is generally characterized by the support vectors rather than the dimension of the dataset.<br/>
+- SVM can work effectively on smaller training datasets because it does not rely on the entire data.<br/>
 
-Cons:
+Cons:<br/>
 - SVM is really computationally expensive and thus should not be used with large datasets.
 - SVM is not so good at dealing with datasets that have multiple overlapping classes.
 
 ### Comparison between SVM and other classification algorithms
 
-SVM vs. Logistic Regression: Logistic regression is limited to binary classifications. Though SVM is by default only able to deal with binary predictors as well, as ISLR textbook mentions we can predict variables of more than 2 groups using techniques called one-versus-one classification or one-versus-all classification.
+- SVM vs. Logistic Regression: Logistic regression is limited to binary classifications. Though SVM is by default only able to deal with binary predictors as well, as ISLR textbook mentions we can predict variables of more than 2 groups using techniques called one-versus-one classification or one-versus-all classification.
 
-SVM vs. KNN: In practice, KNN scales badly, produces blocky boundaries and models that are hard to interpret. Also, KNN does not work well with high dimensionality datasets. SVM in general does not have this problem and is better.
+- SVM vs. KNN: In practice, KNN scales badly, produces blocky boundaries and models that are hard to interpret. Also, KNN does not work well with high dimensionality datasets. SVM in general does not have this problem and is better.
 
-SVM vs. Tree: Trees are greedy, giving the locally rather than globally optimal results. SVM is not greedy.
+- SVM vs. Tree: Trees are greedy, giving the locally rather than globally optimal results. SVM is not greedy.
 
-SVM vs. RandomForest: An advantage of Randomforests is that it gives a probablistic model that indicates the probability that a given datapoint falls into a class. Aside from that, SVM usually gives better results in cases that it can perform well.
+- SVM vs. RandomForest: An advantage of Randomforests is that it gives a probablistic model that indicates the probability that a given datapoint falls into a class. Aside from that, SVM usually gives better results in cases that it can perform well.
 
 In general, SVM is better than other classification algorithms in cases when it can perform well. Considering the cons of SVM listed in the previous section, we generally do not want to use SVM when: 1) the given dataset has a lot of observations, say $10^6$, which makes it too computationally costly to use SVM, and 2) observations wrangle and cannot be separated. Although when data wrangles with each other all algorithms tend to perform badly, SVM usually does the worst in this case.
 
@@ -150,12 +150,12 @@ e1071_linear_model <- svm(
   data = plot_data,
   method = "C-classification", 
   kernel = "linear",
-  cost = 0.160603)
+  cost = 0.16121213)
 
 plot(e1071_linear_model, plot_data, zygomatic.width ~ nasal.width, col = c("pink", "cadetblue1"))
 ```
 
-As anticipated, a linear kernel sufficed for the 2-predictor SVM model. We first tried out a Linear Kernel SVM by using the `caret` package's `svmLinear` method. The CV Accuracy plot shows that the model reached the highest accuracy at values of C that are very close to 0, which matches our prediction that only a small $𝐶$ is needed. We used 10-fold cross validation to identify this optimal mode, which has an accuracy of 0.889 at $𝐶$ = 0.160603. Using `caret` and `kernlab`, we were able to generate a contourplot of the split. However, as the boundaries were not clear in this plot, we used the CV results as input for another package `e1071` with a kernel function to further refine our model. In the plot, the support vectors are marked as $X$, and black mark stands for `fuliginosus` and red mark stands for `giganteus`. In this final model with $𝐶$ = 0.16060 and a linear kernal function, almost all observations are correctly classified.
+As anticipated, a linear kernel sufficed for the 2-predictor SVM model. We first tried out a Linear Kernel SVM by using the `caret` package's `svmLinear` method. The CV Accuracy plot shows that the model reached the highest accuracy at values of C that are very close to 0, which matches our prediction that only a small $𝐶$ is needed. We used 10-fold cross validation to identify this optimal mode, which has an accuracy of 0.889 at $𝐶$ = 0.16121213. Using `caret` and `kernlab`, we were able to generate a contourplot of the split. However, as the boundaries were not clear in this plot, we used the CV results as input for another package `e1071` with a kernel function to further refine our model. In the plot, the support vectors are marked as $X$, and black mark stands for `fuliginosus` and red mark stands for `giganteus`. In this final model with $𝐶$ = 0.16121213 and a linear kernal function, almost all observations are correctly classified.
 
 
 \
@@ -185,17 +185,21 @@ svm_linear_all <- train(
 
 #Plot the accuracies
 plot(svm_linear_all)
+```
 
+Similar to Part 2, we used the results of `caret` SVM training to refine our `svm_linear_all` model with a linear kernel and $𝐶$ = 0.1108081. We also built models with a polynomial and a radial kernel but found that these resulted in complex models that did not significancly improve accuracy. Thus, our final model is the linear SVM with a linear kernel and tuning parameter $𝐶$ =0.1108081.
+
+```{r}
 #Model with linear kernel
 e1071_linear_all_model <- svm(
   species ~ ., 
   data = kangaroo_selected,
   method = "C-classification", 
   kernel = "linear",
-  cost = 0.110402)
+  cost = 0.1108081)
 ```
 
-Similar to Part 2, we used the results of `caret` SVM training to refine our `svm_linear_all` model with a linear kernel and $𝐶$ = 0.110402. We also built models with a polynomial and a radial kernel but found that these resulted in complex models that did not significancly improve accuracy. Thus, our final model is the linear SVM with a linear kernel and tuning parameter $𝐶$ = 0.110402.
+The mechanism for all predictors is similar to the previous analysis when we have 2 predictors. We run the algorithm for the optimal C and we need to use the e1017 package to get more information of the hyperplane which the svm algorithm can't provide us. Therefore, we need to run the e1071 algorithm for the coeffcients and relative significance of the variables.
 
 ### Optimal model
 ```{r}
@@ -203,11 +207,10 @@ svm_linear_all$results %>%
   filter(C == svm_linear_all$bestTune$C)
 ```
 
-The CV accuracy of the linear model is 98.75% with the cost of 0.1104, the CV accuracy of the polynomial model is 97.14% with the cost of 0.01, and the CV accuracy of the radial model is 73.63% with the cost of 1.01402. We would choose the linear model which gives us the highest accuracy, and we should expect that our classification of species on the new data would be 98.75% correct. 
-
+The CV accuracy of the linear model is 98.75% with the cost of 0.1108081, the CV accuracy of the polynomial model is 95.7% with the cost of 0.2620202, and the CV accuracy of the radial model is 75.89% with the cost of 1.018081. We would choose the linear model which gives us the highest accuracy, and we should expect that our classification of species on the new data would be 98.75% correct. 
 
 **Visualiztion of Full SVM classification**
-Since we use all the predictors in this model, the dimension of the graph is too high for us to visualize the hyperplane. Therefore, we can't visualize the SVM hyperplane or the margins because of the high dimension.   
+:Since we use all the predictors in this model, the dimension of the graph is too high for us to visualize the hyperplane. Therefore, we can't visualize the SVM hyperplane or the margins because of the high dimension.   
 
 
 \
@@ -216,7 +219,7 @@ Since we use all the predictors in this model, the dimension of the graph is too
 
 ## Part 4: Summary
 
-The final model using all predictors in the dataset is a linear SVM model with $𝐶$ = 0.11040 and a linear kernel. It can accurately predict 98.75% of new datasets, which is a great result from cross validation.
+The final model using all predictors in the dataset is a linear SVM model with $𝐶$ = 0.1108081 and a linear kernel. It can accurately predict 98.75% of new datasets, which is a great result from cross validation.
 
 ```{r}
 #Create a dataset with categorical variable `sex` mutated to 2 numeric variables for `varImp` function
@@ -382,7 +385,7 @@ e1071_poly_all_model <- svm(
   data = kangaroo_selected,
   method = "C-classification", 
   kernel = "polynomial",
-  cost = 0.01)
+  cost = 0.2620202)
 
 plot(svm_poly_all)
 
@@ -410,7 +413,7 @@ e1071_radial_all_model <- svm(
   data = kangaroo_selected,
   method = "C-classification", 
   kernel = "radial",
-  cost = 1.01402)
+  cost = 1.018081)
 
 plot(svm_rbf_all)
 

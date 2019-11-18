@@ -114,10 +114,9 @@ Since we are now only doing a two-dimension analysis on `zygomatic.width` and `n
 #Set the seed
 set.seed(253)
 
-#Tuning parameter C
-c <- seq(0.01, 10, length = 200)
-sig <- seq(0.01, 10, length = 200)
-grid <- expand.grid(sigma = c(.01, .015, 0.2), C = c(0.75, 0.9, 1, 1.1, 1.25))
+#Tuning parameters
+c <- seq(0.01, 5, length = 100)
+sig <- seq(0.01, 5, length = 100)
 
 #Linear SVM model
 svm_linear <- train(
@@ -165,17 +164,12 @@ As anticipated, a linear kernel sufficed for the 2-predictor SVM model. We first
 
 ## Part 3: Full analysis
 
-Because we have all predictors to classify the species, we can't use a single graph to see the relationship before we train our model. The algorithm below uses all the predictors in the datset to create the hyperplane to classify the species. We tried linear split, polynomial split, and radial split (radial base function, or RBF) to see which method gives us the highest accuracy. We started with a large sequence of C and used the cross validation to identify the optimal tuning value. The algorithm normalizes all the data before the training process (`preProcess`) to standardize variables of different scales and ensure that no predictors exert unduly large influence over the algorithm merely because of its unit and scale. 
+Because we have all predictors to classify the species, we can't use a single graph to see the relationship before we train our model. The algorithm below uses all the predictors in the datset to create the hyperplane to classify the species. We tried linear split, polynomial split, and radial split (radial base function, or RBF) to see which method gives us the highest accuracy. We started with a large sequence of C and used the cross validation to identify the optimal tuning value. The algorithm normalizes all the data before the training process (`preProcess`) to standardize variables of different scales and ensure that no predictors exert unduly large influence over the algorithm merely because of its unit and scale. Our tuning parameters are C which is the cost of the errors, and we tune the different values of C to find the highest accuracy.
 
 ### Building the all-predictor model
 ```{r}
 #Set the seed
 set.seed(253)
-
-#Tuning parameter C
-c <- seq(0.01, 10, length = 200)
-sig <- seq(0.01, 10, length = 200)
-grid <- expand.grid(sigma = c(.01, .015, 0.2), C = c(0.75, 0.9, 1, 1.1, 1.25))
 
 #SVM Linear model
 svm_linear_all <- train(
@@ -250,19 +244,21 @@ varImp(svm_linear_all_1)
 The most useful predictors for predicting kangaroo species are `nasal.length`, `mandable.width`, `crest.width`, and `nasal.width` with importance values greater than 90. The least important predictors classifying kangaroo species are `lacrymal.width`, `palate.length`, and `basilar.length`. They all have importance less than 3.1, showing how vastly unimportant they are compared to the most important predictors. This ranking can be useful in identifying the least or lesser important predictors to be removed from our model if we wanted to build a simpler model. The plot below shows the magnitude (absolute value) of the coefficients of all of the predictors in our model.
 
 ```{r}
-#
+#visualization of coefs
 w <- t(e1071_linear_all_model$coefs) %*% e1071_linear_all_model$SV
 w1<- t(w)
-w2 <- w1[order(-w1[,1]),]
-w2
+w1 <- data.frame(w1)
+w1 <- tibble::rownames_to_column(w1, "name")
+w1 <- w1 %>%
+  mutate(value = w1)%>%
+  select(-w1)
+
+ggplot(data = w1, aes(x = name, y= value))+
+  geom_boxplot()+
+  coord_flip()
 ```
 
-
-```{r}
-#Absolute values of predictor coefficients
-w1
-plot(abs(w1))
-```
+The graph above shows the coefficients of all predictors of the hyperplane. The absolute magnitude of the coefficient represents its significance level so that a predictor would be more important if its coefficient is more away from zero in the graph.
 
 Using the powerful classification algorithm SVM, we built highly accurate models for identifying 2 species of kangaroo in Australia. This is a linear SVM model with low $C$ value and a linear kernal term. The results of this analysis also advanced our understanding of the relationship between species and anatomical predictors collected for the kangaroo dataset. We established that, at least in distinguishing between 2 species `fuliginosus` and `giganteus`, `nasal.length`, `mandable.width`, `crest.width` and `nasal.width` are particularly important while `lacrymal.width`, `palate.length`, and `basilar.length` are the least important and can be removed for simpler models. An application of this conclusion is a focus on collecting data for the most important variables helpful for species identification.
 
